@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集包码面单批量生成 · 实时预览 · 自动保存</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;padding:20px 20px 32px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:#f4f6fa;color:#1f2937;-webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1440px;margin:0 auto}
+  header{margin-bottom:16px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{margin:0;color:#6b7280;font-size:13px;line-height:1.6}
+
+  .workspace{display:flex;gap:18px;align-items:flex-start}
+
+  /* ============ 左侧设置 ============ */
+  .settings{
+    flex:0 0 380px;
+    background:#fff;border:1px solid #e3e8f0;border-radius:14px;
+    padding:18px;display:flex;flex-direction:column;gap:16px;
+    max-height:calc(100vh - 120px);overflow-y:auto;
+    box-shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  .group{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;border-bottom:1px dashed #e8edf5}
+  .group:last-of-type{border-bottom:none;padding-bottom:0}
+  .group-title{font-size:11px;font-weight:800;color:#8a93a3;letter-spacing:.08em}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#4b5563;font-weight:600;min-width:0}
+  .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  textarea,input[type=number],select{
+    font-family:inherit;font-size:13px;padding:8px 10px;width:100%;
+    border:1px solid #d7dee9;border-radius:8px;outline:none;
+    background:#fbfcfe;color:#111827;transition:border-color .15s,box-shadow .15s,background .15s;
+  }
+  textarea:focus,input[type=number]:focus,select:focus{
+    border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12);
+  }
+  textarea{resize:vertical;line-height:1.55;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+  select{cursor:pointer}
+  input[type=number]:disabled{background:#f1f3f7;color:#9aa3b2;cursor:not-allowed}
+  .checkbox{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#374151;cursor:pointer;user-select:none}
+  .checkbox input{width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex:0 0 auto}
+
+  .warn{
+    font-size:12px;line-height:1.6;color:#b45309;background:#fffbeb;
+    border:1px solid #fde68a;border-radius:8px;padding:8px 10px;
+  }
+  .warn[hidden]{display:none}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;position:sticky;bottom:-18px;background:#fff;padding-top:6px}
+  button{
+    font-family:inherit;font-size:13px;font-weight:600;
+    padding:9px 18px;border-radius:9px;border:1px solid transparent;
+    cursor:pointer;transition:.15s;
+  }
+  button.accent{background:#0d9488;color:#fff;box-shadow:0 1px 2px rgba(13,148,136,.3)}
+  button.accent:hover{background:#0f766e}
+  button.ghost{background:#fff;border-color:#d7dee9;color:#374151}
+  button.ghost:hover{background:#f3f6fb}
+
+  .save-note{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;color:#8a93a3;line-height:1.5;
+  }
+  .save-dot{width:6px;height:6px;border-radius:50%;background:#10b981;flex:0 0 auto}
+  .save-dot.pending{background:#f59e0b}
+
+  /* ============ 右侧预览 ============ */
+  .preview-pane{
+    flex:1 1 auto;min-width:0;background:#fff;border:1px solid #e3e8f0;
+    border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  .preview-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:10px 14px;border-bottom:1px solid #eef1f6;font-size:13px;color:#4b5563;
+  }
+  .preview-bar b{color:#111827}
+  .zoom-ctl{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280}
+  .zoom-ctl input[type=range]{width:120px;accent-color:#2563eb;cursor:pointer}
+  .zoom-val{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#374151}
+
+  .preview-scroll{
+    background:#eef1f7;padding:24px;
+    height:calc(100vh - 160px);min-height:420px;overflow:auto;
+  }
+  .pages{display:flex;flex-direction:column;align-items:center;gap:26px}
+  .paper-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .paper-cap{font-size:11px;color:#8a93a3;font-variant-numeric:tabular-nums}
+  .paper{
+    position:relative;background:#fff;overflow:hidden;
+    box-shadow:0 2px 12px rgba(15,23,42,.14);
+    outline:1px solid rgba(15,23,42,.06);
+  }
+  .guide-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:#8b95ff;letter-spacing:.04em;overflow:hidden;
+    background:repeating-linear-gradient(45deg,#f6f8ff,#f6f8ff 6px,#edf1ff 6px,#edf1ff 12px);
+    border-bottom:1px dashed #c7d2fe;pointer-events:none;
+  }
+  /* 自上向下排列：flex 默认 flex-start，不再做垂直居中 */
+  .paper-body{
+    display:flex;flex-direction:column;height:100%;
+    justify-content:flex-start;
+  }
+  .paper-item{
+    position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .paper-item svg{display:block}
+  .paper-err{font-size:11px;color:#b91c1c;padding:0 4px;text-align:center}
+  .dl-btn{
+    position:absolute;top:1px;right:1px;opacity:0;pointer-events:none;
+    font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid #c7d2fe;
+    background:#fff;color:#4338ca;cursor:pointer;transition:opacity .12s;
+  }
+  .paper-item:hover .dl-btn{opacity:1;pointer-events:auto}
+  .empty-tip{color:#9ca3af;font-size:13px;text-align:center;padding:60px 20px}
+  .page-more{
+    font-size:12px;color:#6b7280;background:#fff;border:1px dashed #cfd8e6;
+    border-radius:9px;padding:10px 18px;text-align:center;
+  }
+
+  /* ============ 打印输出 ============ */
+  .print-root{display:none}
+
+  @media print{
+    @page{size:76mm 130mm;margin:0}
+    html,body{
+      margin:0!important;padding:0!important;height:auto!important;
+      background:#fff!important;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    }
+    .app{display:none!important}
+    .print-root{display:block!important}
+
+    .label-page{
+      width:76mm;height:129.8mm;          /* 略小于 130mm，避免多出空白页 */
+      overflow:hidden;
+      page-break-after:always;break-after:page;
+      page-break-inside:avoid;break-inside:avoid;
+    }
+    .label-page:last-child{page-break-after:auto;break-after:auto}
+    /* 自上向下排列，不再垂直居中 */
+    .label-body{
+      height:129.8mm;box-sizing:border-box;
+      display:flex;flex-direction:column;justify-content:flex-start;
+      overflow:hidden;
+    }
+    .label-item{
+      flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    }
+    .label-item svg{display:block}
+    .print-err{color:#b91c1c;font-size:8pt;padding:1mm;text-align:center}
+  }
+
+  @media (max-width:1000px){
+    .workspace{flex-direction:column}
+    .settings{flex:1 1 auto;width:100%;max-height:none}
+    .preview-pane{width:100%}
+    .preview-scroll{height:auto;max-height:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>集包码面单批量生成</h1>
+    <p class="sub">每行一个条码内容 · Code128 自动编码 · 每页条码自上向下排列 · 右侧实时预览 76 × 130 mm 面单 · 所有设置自动保存在本地</p>
+  </header>
+
+  <div class="workspace">
+    <!-- ========== 左：设置 ========== -->
+    <aside class="settings" id="settings">
+      <div class="group">
+        <label class="field">
+          <span class="lbl">条码内容（每行一个，最多 300 行）</span>
+          <textarea id="input" rows="7" spellcheck="false" placeholder="每行一个条码内容，例如：&#10;JB202410310001&#10;JB202410310002"></textarea>
+        </label>
+      </div>
+
+      <div class="group">
+        <div class="group-title">条码布局</div>
+        <div class="grid2">
+          <label class="field">
+            <span class="lbl">每张面单条码数</span>
+            <input type="number" id="perPage" value="3" min="1" max="20" step="1">
+          </label>
+          <label class="field">
+            <span class="lbl">条码宽度占比 (%)</span>
+            <input type="number" id="widthPct" value="100" min="20" max="100" step="1">
+          </label>
+        </div>
+        <div class="grid2">
+          <label class="field">
+            <span class="lbl">高度模式</span>
+            <select id="heightMode">
+              <option value="auto" selected>自动铺满</option>
+              <option value="fixed">固定高度</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="lbl">条码高度 (mm)</span>
+            <input type="number" id="fixedHeight" value="22" min="3" max="120" step="0.5" disabled>
+          </label>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" id="showText" checked>
+          <span>条码下方显示文本</span>
+        </label>
+      </div>
+
+      <div class="group">
+        <div class="group-title">面单留白与间距（毫米）</div>
+        <div class="grid2">
+          <label class="field">
+            <span class="lbl">上边距（图标区）</span>
+            <input type="number" id="padTop" value="10" min="0" max="80" step="0.5">
+          </label>
+          <label class="field">
+            <span class="lbl">下边距</span>
+            <input type="number" id="padBottom" value="3" min="0" max="80" step="0.5">
+          </label>
+          <label class="field">
+            <span class="lbl">左边距</span>
+            <input type="number" id="padLeft" value="2" min="0" max="40" step="0.5">
+          </label>
+          <label class="field">
+            <span class="lbl">右边距</span>
+            <input type="number" id="padRight" value="2" min="0" max="40" step="0.5">
+          </label>
+          <label class="field">
+            <span class="lbl">条码间距</span>
+            <input type="number" id="gap" value="1.5" min="0" max="40" step="0.5">
+          </label>
+        </div>
+      </div>
+
+      <div id="warn" class="warn" hidden></div>
+
+      <div class="save-note">
+        <span class="save-dot" id="saveDot"></span>
+        <span id="saveText">内容与设置已自动保存在本地浏览器</span>
+      </div>
+
+      <div class="actions">
+        <button id="printAll" class="accent">一键打印面单</button>
+        <button id="reset" class="ghost">恢复默认</button>
+      </div>
+    </aside>
+
+    <!-- ========== 右：打印预览 ========== -->
+    <main class="preview-pane">
+      <div class="preview-bar">
+        <span>打印预览 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）</span>
+        <div class="zoom-ctl">
+          <span>缩放</span>
+          <input type="range" id="zoom" min="0.6" max="3" step="0.05" value="1.5">
+          <span class="zoom-val" id="zoomVal">150%</span>
+        </div>
+      </div>
+      <div class="preview-scroll" id="previewScroll">
+        <div class="pages" id="previewPages"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- 打印专用输出容器 -->
+<div class="print-root" id="printRoot"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= Code128 编码表 ================= */
+  const CODE128 = [
+    "212222","222122","222221","121223","121322","131222","122213","122312","132212","221213",
+    "221312","231212","112232","122132","122231","113222","123122","123221","223211","221132",
+    "221231","213212","223112","312131","311222","321122","321221","312212","322112","322211",
+    "212123","212321","232121","111323","131123","131321","112313","132113","132311","211313",
+    "231113","231311","112133","112331","132131","113123","113321","133121","313121","211331",
+    "231131","213113","213311","213131","311123","311321","331121","312113","312311","332111",
+    "314111","221411","431111","111224","111422","121124","121421","141122","141221","112214",
+    "112412","122114","122411","142112","142211","241211","221114","413111","241112","134111",
+    "111242","121142","121241","114212","124112","124211","411212","421112","421211","212141",
+    "214121","412121","111143","111341","131141","114113","114311","411113","411311","113141",
+    "114131","311141","411131","211412","211214","211232","2331112"
+  ];
+  const START_B = 104, START_C = 105, STOP = 106;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  /* ================= 常量 ================= */
+  const PAGE_W = 76;          // mm 纸宽
+  const PAGE_H = 129.8;       // mm 纸高（略小于 130，避免多出空白页）
+  const TEXT_H = 4.4;         // mm 可读文本预留高度
+  const PX_PER_MM = 3.7795275591;
+  const MAX_LINES = 300;
+  const PREVIEW_MAX_PAGES = 20;       // 预览最多渲染页数（避免卡顿）
+  const STORAGE_KEY = 'barcode_label_settings_v1';
+
+  /* ================= DOM ================= */
+  const $ = id => document.getElementById(id);
+  const settingsEl   = $('settings');
+  const inputEl      = $('input');
+  const perPageEl    = $('perPage');
+  const widthPctEl   = $('widthPct');
+  const heightModeEl = $('heightMode');
+  const fixedHEl     = $('fixedHeight');
+  const showTextEl   = $('showText');
+  const padTopEl     = $('padTop');
+  const padBottomEl  = $('padBottom');
+  const padLeftEl    = $('padLeft');
+  const padRightEl   = $('padRight');
+  const gapEl        = $('gap');
+  const zoomEl       = $('zoom');
+  const zoomValEl    = $('zoomVal');
+  const warnEl       = $('warn');
+  const previewPages = $('previewPages');
+  const printRoot    = $('printRoot');
+  const saveDot      = $('saveDot');
+  const saveText     = $('saveText');
+
+  /* ================= 工具 ================= */
+  function clampNum(v, min, max, def) {
+    const n = parseFloat(v);
+    if (!isFinite(n)) return def;
+    return Math.min(max, Math.max(min, n));
+  }
+  function readConfig() {
+    return {
+      perPage: Math.round(clampNum(perPageEl.value, 1, 20, 3)),
+      widthPct: clampNum(widthPctEl.value, 20, 100, 100),
+      heightMode: heightModeEl.value === 'fixed' ? 'fixed' : 'auto',
+      fixedHeight: clampNum(fixedHEl.value, 3, 120, 22),
+      showText: showTextEl.checked,
+      padTop: clampNum(padTopEl.value, 0, 80, 10),
+      padBottom: clampNum(padBottomEl.value, 0, 80, 3),
+      padLeft: clampNum(padLeftEl.value, 0, 40, 2),
+      padRight: clampNum(padRightEl.value, 0, 40, 2),
+      gap: clampNum(gapEl.value, 0, 40, 1.5),
+      zoom: clampNum(zoomEl.value, 0.5, 3, 1.5)
+    };
+  }
+  function getLines() {
+    return inputEl.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  }
+  function chunkArray(arr, n) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+    return out;
+  }
+  function el(tag, cls) {
+    const d = document.createElement(tag);
+    if (cls) d.className = cls;
+    return d;
+  }
+
+  /* ================= 本地持久化 ================= */
+  let storageOK = true;
+  let saveTimer = null;
+
+  function collectState() {
+    return {
+      v: 1,
+      input: inputEl.value,
+      perPage: perPageEl.value,
+      widthPct: widthPctEl.value,
+      heightMode: heightModeEl.value,
+      fixedHeight: fixedHEl.value,
+      showText: showTextEl.checked,
+      padTop: padTopEl.value,
+      padBottom: padBottomEl.value,
+      padLeft: padLeftEl.value,
+      padRight: padRightEl.value,
+      gap: gapEl.value,
+      zoom: zoomEl.value
+    };
+  }
+
+  function doSave() {
+    if (!storageOK) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+      saveDot.classList.remove('pending');
+      saveText.textContent = '内容与设置已自动保存在本地浏览器';
+    } catch (e) {
+      storageOK = false;
+      saveDot.classList.add('pending');
+      saveText.textContent = '本地存储不可用，本次修改不会被记住';
+    }
+  }
+
+  function scheduleSave() {
+    if (!storageOK) return;
+    saveDot.classList.add('pending');
+    saveText.textContent = '正在保存…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 350);
+  }
+
+  function applyState(s) {
+    if (!s || typeof s !== 'object') return false;
+
+    if (typeof s.input === 'string') inputEl.value = s.input;
+    if (s.perPage != null && s.perPage !== '') perPageEl.value = s.perPage;
+    if (s.widthPct != null && s.widthPct !== '') widthPctEl.value = s.widthPct;
+    if (s.heightMode === 'fixed' || s.heightMode === 'auto') heightModeEl.value = s.heightMode;
+    if (s.fixedHeight != null && s.fixedHeight !== '') fixedHEl.value = s.fixedHeight;
+    if (typeof s.showText === 'boolean') showTextEl.checked = s.showText;
+    if (s.padTop != null && s.padTop !== '') padTopEl.value = s.padTop;
+    if (s.padBottom != null && s.padBottom !== '') padBottomEl.value = s.padBottom;
+    if (s.padLeft != null && s.padLeft !== '') padLeftEl.value = s.padLeft;
+    if (s.padRight != null && s.padRight !== '') padRightEl.value = s.padRight;
+    if (s.gap != null && s.gap !== '') gapEl.value = s.gap;
+    if (s.zoom != null && s.zoom !== '') {
+      zoomEl.value = clampNum(s.zoom, 0.6, 3, 1.5);
+    }
+    return true;
+  }
+
+  function loadState() {
+    let raw = null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      storageOK = false;
+      saveDot.classList.add('pending');
+      saveText.textContent = '本地存储不可用，本次修改不会被记住';
+      return false;
+    }
+    if (!raw) return false;
+    try {
+      const s = JSON.parse(raw);
+      return applyState(s);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* ================= 布局计算（全部用 mm） ================= */
+  function computeLayout(cfg, n) {
+    const contentW = Math.max(5, PAGE_W - cfg.padLeft - cfg.padRight);
+    const contentH = Math.max(5, PAGE_H - cfg.padTop - cfg.padBottom);
+    const textH = cfg.showText ? TEXT_H : 0;
+
+    let barH, unitH, overflow = false;
+
+    if (cfg.heightMode === 'auto') {
+      const raw = (contentH - cfg.gap * (n - 1)) / n;
+      barH = Math.max(3, raw - textH);
+      unitH = barH + textH;
+      if (unitH * n + cfg.gap * (n - 1) > contentH + 0.001) overflow = true;
+    } else {
+      barH = Math.max(3, cfg.fixedHeight);
+      unitH = barH + textH;
+      const need = unitH * n + cfg.gap * (n - 1);
+      if (need > contentH) {
+        const avail = Math.max(2, contentH - cfg.gap * (n - 1));
+        barH = Math.max(2, (avail / n) - textH);
+        unitH = barH + textH;
+        overflow = true;
+      }
+    }
+    return { contentW, contentH, barH, unitH, textH, overflow };
+  }
+
+  /* 文本字号（mm），按宽度与文本高度自适应 */
+  function pickFontMM(text, barcodeW, textH) {
+    if (textH <= 0) return 0;
+    const byWidth = (barcodeW - 1.2) / Math.max(1, text.length * 0.62);
+    return Math.max(1.0, Math.min(textH * 0.74, byWidth, 3.4));
+  }
+
+  /* ================= Code128 值序列 ================= */
+  function code128Values(text) {
+    if (!text.length) throw new Error('内容为空');
+    for (const ch of text) {
+      const c = ch.charCodeAt(0);
+      if (c < 32 || c > 126) throw new Error('含不支持的字符「' + ch + '」，仅支持 ASCII 可见字符');
+    }
+    const values = [];
+    if (/^\d+$/.test(text) && text.length % 2 === 0) {
+      values.push(START_C);
+      for (let i = 0; i < text.length; i += 2) {
+        values.push(parseInt(text.slice(i, i + 2), 10));
+      }
+    } else {
+      values.push(START_B);
+      for (const ch of text) values.push(ch.charCodeAt(0) - 32);
+    }
+    let sum = values[0];
+    for (let i = 1; i < values.length; i++) sum += values[i] * i;
+    values.push(sum % 103);
+    values.push(STOP);
+    return values;
+  }
+
+  /* ================= 生成 SVG ================= */
+  function buildSVG(text, width, barHeight, textHeight, fontSize, unit) {
+    const values = code128Values(text);
+
+    const runs = [];
+    let x = 0;
+    for (let i = 0; i < values.length; i++) {
+      const pattern = CODE128[values[i]];
+      let isBar = true;
+      for (let k = 0; k < pattern.length; k++) {
+        const w = pattern.charCodeAt(k) - 48;
+        if (isBar) runs.push([x, w]);
+        x += w;
+        isBar = !isBar;
+      }
+    }
+
+    const quiet = 10;
+    const totalModules = x + quiet * 2;
+    const mw = width / totalModules;
+    const totalH = barHeight + textHeight;
+    const u = unit || '';
+
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('xmlns', SVGNS);
+    svg.setAttribute('width', width + u);
+    svg.setAttribute('height', totalH + u);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + totalH);
+
+    const bg = document.createElementNS(SVGNS, 'rect');
+    bg.setAttribute('x', 0);
+    bg.setAttribute('y', 0);
+    bg.setAttribute('width', width);
+    bg.setAttribute('height', totalH);
+    bg.setAttribute('fill', '#ffffff');
+    svg.appendChild(bg);
+
+    for (let i = 0; i < runs.length; i++) {
+      const rect = document.createElementNS(SVGNS, 'rect');
+      rect.setAttribute('x', ((runs[i][0] + quiet) * mw).toFixed(4));
+      rect.setAttribute('y', 0);
+      rect.setAttribute('width', (runs[i][1] * mw).toFixed(4));
+      rect.setAttribute('height', barHeight);
+      rect.setAttribute('fill', '#000000');
+      svg.appendChild(rect);
+    }
+
+    if (textHeight > 0 && fontSize > 0) {
+      const t = document.createElementNS(SVGNS, 'text');
+      t.setAttribute('x', width / 2);
+      t.setAttribute('y', (barHeight + textHeight / 2 + fontSize * 0.35).toFixed(3));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-family', "ui-monospace, 'Courier New', monospace");
+      t.setAttribute('font-size', fontSize.toFixed(3));
+      t.setAttribute('fill', '#000000');
+      t.textContent = text;
+      svg.appendChild(t);
+    }
+
+    return svg;
+  }
+
+  /* ================= 导出 PNG ================= */
+  function downloadPNG(svg, name) {
+    const w = parseFloat(svg.getAttribute('width'));
+    const h = parseFloat(svg.getAttribute('height'));
+    const svgString = new XMLSerializer().serializeToString(svg.cloneNode(true));
+    const blob = new Blob(['<?xml version="1.0" standalone="no"?>\n' + svgString],
+                          { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+
+    img.onload = function () {
+      const scale = Math.max(1, 900 / w);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(function (b) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = (String(name).replace(/[\\/:*?"<>|]/g, '_') || 'barcode') + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+      }, 'image/png');
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      alert('导出 PNG 失败，请重试');
+    };
+    img.src = url;
+  }
+
+  /* ================= 警告提示 ================= */
+  function updateWarn(cfg, layout, count) {
+    const msgs = [];
+    if (cfg.padTop + cfg.padBottom > PAGE_H - 12) {
+      msgs.push('上下边距之和过大，可用高度不足。');
+    }
+    if (layout.overflow) {
+      msgs.push('条码总高度超出可用区域，已自动压缩，建议减小条码高度或每页数量。');
+    }
+    if (layout.barH < 6) {
+      msgs.push('当前条码高度仅 ' + layout.barH.toFixed(1) + ' mm，可能影响扫描识别。');
+    }
+    if (count > MAX_LINES) {
+      msgs.push('条码数量超过 ' + MAX_LINES + ' 个，仅显示前 ' + MAX_LINES + ' 个。');
+    }
+    if (msgs.length) {
+      warnEl.textContent = msgs.join(' ');
+      warnEl.hidden = false;
+    } else {
+      warnEl.hidden = true;
+    }
+  }
+
+  /* ================= 渲染右侧预览 ================= */
+  function renderPreview() {
+    const cfg = readConfig();
+    const allLines = getLines();
+    const lines = allLines.slice(0, MAX_LINES);
+    const layout = computeLayout(cfg, cfg.perPage);
+    updateWarn(cfg, layout, allLines.length);
+
+    zoomValEl.textContent = Math.round(cfg.zoom * 100) + '%';
+
+    previewPages.innerHTML = '';
+    if (!lines.length) {
+      previewPages.innerHTML = '<div class="empty-tip">在左侧输入条码内容，每行一个，右侧即实时预览</div>';
+      return;
+    }
+
+    const u = PX_PER_MM * cfg.zoom;      // mm → 预览 px
+    const allPages = chunkArray(lines, cfg.perPage);
+    const pages = allPages.slice(0, PREVIEW_MAX_PAGES);
+    const barcodeWMM = layout.contentW * cfg.widthPct / 100;
+    const frag = document.createDocumentFragment();
+
+    pages.forEach(function (chunk, pi) {
+      const wrap = el('div', 'paper-wrap');
+
+      const cap = el('div', 'paper-cap');
+      cap.textContent = '第 ' + (pi + 1) + ' / ' + allPages.length + ' 张 · 76 × 130 mm';
+      wrap.appendChild(cap);
+
+      const paper = el('div', 'paper');
+      paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
+      paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
+
+      // 顶部厂商图标预留区标识
+      if (cfg.padTop > 0) {
+        const guide = el('div', 'guide-top');
+        guide.style.height = (cfg.padTop * u).toFixed(2) + 'px';
+        guide.textContent = '厂商图标区 ' + cfg.padTop + 'mm';
+        paper.appendChild(guide);
+      }
+
+      // 条码容器：自上向下排列（justify-content 固定为 flex-start）
+      const body = el('div', 'paper-body');
+      body.style.padding =
+        (cfg.padTop * u).toFixed(2) + 'px ' +
+        (cfg.padRight * u).toFixed(2) + 'px ' +
+        (cfg.padBottom * u).toFixed(2) + 'px ' +
+        (cfg.padLeft * u).toFixed(2) + 'px';
+      body.style.gap = (cfg.gap * u).toFixed(2) + 'px';
+      body.style.justifyContent = 'flex-start';
+
+      chunk.forEach(function (line) {
+        const item = el('div', 'paper-item');
+        item.style.height = (layout.unitH * u).toFixed(2) + 'px';
+
+        let svg = null;
+        try {
+          const fontMM = pickFontMM(line, barcodeWMM, layout.textH);
+          svg = buildSVG(
+            line,
+            barcodeWMM * u,
+            layout.barH * u,
+            layout.textH * u,
+            fontMM * u,
+            ''
+          );
+          item.appendChild(svg);
+        } catch (err) {
+          const e = el('div', 'paper-err');
+          e.textContent = '内容无效：' + err.message;
+          item.appendChild(e);
+        }
+
+        if (svg) {
+          const dl = document.createElement('button');
+          dl.className = 'dl-btn';
+          dl.type = 'button';
+          dl.textContent = '⬇ PNG';
+          dl.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            downloadPNG(svg, line);
+          });
+          item.appendChild(dl);
+        }
+
+        body.appendChild(item);
+      });
+
+      paper.appendChild(body);
+      wrap.appendChild(paper);
+      frag.appendChild(wrap);
+    });
+
+    previewPages.appendChild(frag);
+
+    if (allPages.length > PREVIEW_MAX_PAGES) {
+      const more = el('div', 'page-more');
+      more.textContent = '为保持流畅，预览仅显示前 ' + PREVIEW_MAX_PAGES + ' 页，打印时会输出全部 ' + allPages.length + ' 页';
+      previewPages.appendChild(more);
+    }
+  }
+
+  /* ================= 防抖渲染 ================= */
+  let renderTimer = null;
+  function scheduleRender() {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(renderPreview, 110);
+  }
+
+  /* ================= 构建打印 DOM（真实 mm 单位） ================= */
+  function buildPrintDOM() {
+    const cfg = readConfig();
+    const lines = getLines().slice(0, MAX_LINES);
+
+    printRoot.innerHTML = '';
+    if (!lines.length) {
+      alert('请先在左侧输入至少一行条码内容');
+      return false;
+    }
+
+    const layout = computeLayout(cfg, cfg.perPage);
+    const pages = chunkArray(lines, cfg.perPage);
+    const barcodeWMM = layout.contentW * cfg.widthPct / 100;
+    const frag = document.createDocumentFragment();
+
+    pages.forEach(function (chunk) {
+      const page = el('div', 'label-page');
+
+      // 条码容器：自上向下排列
+      const body = el('div', 'label-body');
+      body.style.padding =
+        cfg.padTop + 'mm ' + cfg.padRight + 'mm ' +
+        cfg.padBottom + 'mm ' + cfg.padLeft + 'mm';
+      body.style.gap = cfg.gap + 'mm';
+      body.style.justifyContent = 'flex-start';
+
+      chunk.forEach(function (line) {
+        const item = el('div', 'label-item');
+        item.style.height = layout.unitH.toFixed(3) + 'mm';
+
+        try {
+          const fontMM = pickFontMM(line, barcodeWMM, layout.textH);
+          item.appendChild(buildSVG(
+            line,
+            barcodeWMM,
+            layout.barH,
+            layout.textH,
+            fontMM,
+            'mm'
+          ));
+        } catch (err) {
+          const d = el('div', 'print-err');
+          d.textContent = line + '：' + err.message;
+          item.appendChild(d);
+        }
+
+        body.appendChild(item);
+      });
+
+      page.appendChild(body);
+      frag.appendChild(page);
+    });
+
+    printRoot.appendChild(frag);
+    return true;
+  }
+
+  /* ================= 打印 ================= */
+  function printAll() {
+    if (!buildPrintDOM()) return;
+    requestAnimationFrame(function () {
+      setTimeout(function () { window.print(); }, 30);
+    });
+  }
+
+  /* ================= 事件绑定 ================= */
+  settingsEl.addEventListener('input', function (e) {
+    if (e.target === heightModeEl) {
+      fixedHEl.disabled = (heightModeEl.value !== 'fixed');
+    }
+    scheduleRender();
+    scheduleSave();
+  });
+  settingsEl.addEventListener('change', function (e) {
+    if (e.target === heightModeEl) {
+      fixedHEl.disabled = (heightModeEl.value !== 'fixed');
+    }
+    scheduleRender();
+    scheduleSave();
+  });
+
+  zoomEl.addEventListener('input', function () {
+    zoomValEl.textContent = Math.round(parseFloat(zoomEl.value) * 100) + '%';
+    scheduleRender();
+    scheduleSave();
+  });
+
+  $('printAll').addEventListener('click', printAll);
+
+  $('reset').addEventListener('click', function () {
+    perPageEl.value = '3';
+    widthPctEl.value = '100';
+    heightModeEl.value = 'auto';
+    fixedHEl.value = '22';
+    fixedHEl.disabled = true;
+    showTextEl.checked = true;
+    padTopEl.value = '10';
+    padBottomEl.value = '3';
+    padLeftEl.value = '2';
+    padRightEl.value = '2';
+    gapEl.value = '1.5';
+    zoomEl.value = '1.5';
+    zoomValEl.textContent = '150%';
+    renderPreview();
+    scheduleSave();
+  });
+
+  // Ctrl / Cmd + Enter 直接打印
+  inputEl.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      printAll();
+    }
+  });
+
+  // 离开页面前立即保存，避免防抖丢失
+  window.addEventListener('beforeunload', function () {
+    clearTimeout(saveTimer);
+    doSave();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      clearTimeout(saveTimer);
+      doSave();
+    }
+  });
+
+  /* ================= 初始化 ================= */
+  const restored = loadState();
+
+  // 未保存过时填入示例内容
+  if (!restored) {
+    inputEl.value = [
+      'JB202410310001',
+      'JB202410310002',
+      'JB202410310003',
+      'JB202410310004',
+      'JB202410310005',
+      'JB202410310006'
+    ].join('\n');
+    perPageEl.value = '3';
+    widthPctEl.value = '100';
+    heightModeEl.value = 'auto';
+    fixedHEl.value = '22';
+    showTextEl.checked = true;
+    padTopEl.value = '10';
+    padBottomEl.value = '3';
+    padLeftEl.value = '2';
+    padRightEl.value = '2';
+    gapEl.value = '1.5';
+    zoomEl.value = '1.5';
+  }
+
+  fixedHEl.disabled = (heightModeEl.value !== 'fixed');
+  zoomValEl.textContent = Math.round(parseFloat(zoomEl.value || 1.5) * 100) + '%';
+
+  renderPreview();
+
+  // 首次成功恢复后，落盘一次当前状态，保证后续一致
+  if (restored) {
+    saveDot.classList.remove('pending');
+    saveText.textContent = '已恢复上次的内容与设置';
+    setTimeout(function () {
+      saveText.textContent = '内容与设置已自动保存在本地浏览器';
+    }, 2400);
+  } else {
+    scheduleSave();
+  }
+})();
+</script>
+</body>
+</html>
