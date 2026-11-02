@@ -38,6 +38,18 @@
   .panel{display:flex;flex-direction:column;gap:14px}
   .panel[hidden]{display:none!important}
 
+  /* 快递单内部子标签 */
+  .sub-tabs{display:inline-flex;background:#eef1f7;border-radius:9px;padding:3px;gap:3px;align-self:flex-start}
+  .sub-tab{
+    font-size:13px;font-weight:600;padding:7px 18px;border-radius:7px;border:none;
+    background:transparent;color:#5b6472;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .sub-tab:hover{color:#1d4ed8}
+  .sub-tab.active{background:#fff;color:#1d4ed8;box-shadow:0 1px 3px rgba(15,23,42,.12)}
+
+  .sub-panel{display:flex;flex-direction:column;gap:14px}
+  .sub-panel[hidden]{display:none!important}
+
   .group{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;border-bottom:1px dashed #e8edf5}
   .group:last-of-type{border-bottom:none;padding-bottom:0}
   .group-title{font-size:11px;font-weight:800;color:#8a93a3;letter-spacing:.08em}
@@ -58,6 +70,8 @@
   .checkbox{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#374151;cursor:pointer;user-select:none}
   .checkbox input{width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex:0 0 auto}
 
+  .hint{font-size:11px;color:#9aa3b2;line-height:1.5;font-weight:400}
+
   .warn{
     font-size:12px;line-height:1.6;color:#b45309;background:#fffbeb;
     border:1px solid #fde68a;border-radius:8px;padding:8px 10px;
@@ -72,23 +86,63 @@
   }
   button.accent{background:#0d9488;color:#fff;box-shadow:0 1px 2px rgba(13,148,136,.3)}
   button.accent:hover{background:#0f766e}
+  button.download{background:#4f46e5;color:#fff;box-shadow:0 1px 2px rgba(79,70,229,.3)}
+  button.download:hover{background:#4338ca}
   button.ghost{background:#fff;border-color:#d7dee9;color:#374151}
   button.ghost:hover{background:#f3f6fb}
-  button:disabled{opacity:.5;cursor:not-allowed}
+  button:disabled{opacity:.6;cursor:not-allowed}
 
-  .small-add{
-    padding:8px 14px;font-size:12px;background:#eef2ff;border:1px dashed #b9c6e8;color:#1d4ed8;
-    width:100%;
+  /* 面单页标签栏 */
+  .page-tabs{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    scrollbar-width:thin;
   }
-  .small-add:hover{background:#e0e7ff}
+  .page-tabs::-webkit-scrollbar{height:6px}
+  .page-tabs::-webkit-scrollbar-thumb{background:#cfd8e6;border-radius:3px}
+  .page-tab{
+    flex:0 0 auto;
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:600;
+    border-radius:7px;
+    border:1px solid #dfe5f0;
+    background:#fbfcff;
+    color:#5b6472;
+    cursor:pointer;
+    font-family:inherit;
+    transition:.15s;
+    white-space:nowrap;
+  }
+  .page-tab:hover{background:#eef2ff;border-color:#b9c6e8;color:#1d4ed8}
+  .page-tab.active{background:#4338ca;border-color:#4338ca;color:#fff}
+  .page-tab-add{
+    flex:0 0 auto;
+    padding:6px 12px;
+    font-size:13px;
+    font-weight:700;
+    border-radius:7px;
+    border:1px dashed #b9c6e8;
+    background:#eef2ff;
+    color:#1d4ed8;
+    cursor:pointer;
+    font-family:inherit;
+    transition:.15s;
+  }
+  .page-tab-add:hover{background:#e0e7ff}
 
-  /* 快递单页卡片 */
-  .express-pages-list{display:flex;flex-direction:column;gap:12px}
-  .express-page-card{
-    border:1px solid #dfe5f0;border-radius:10px;padding:12px;
-    background:#fbfcff;display:flex;flex-direction:column;gap:9px;
+  .page-editor{
+    border:1px solid #dfe5f0;
+    border-radius:10px;
+    padding:12px;
+    background:#fbfcff;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
   }
-  .epc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .page-editor-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .epc-title{font-size:12px;font-weight:800;color:#4338ca}
   .epc-del{
     padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid #fecaca;
@@ -96,6 +150,19 @@
   }
   .epc-del:hover{background:#fef2f2}
   .epc-del:disabled{opacity:.4;cursor:not-allowed;background:#f8fafc;color:#9aa3b2;border-color:#e2e8f0}
+
+  /* 高级选项折叠框 */
+  .adv-box{
+    border:1px dashed #dbe3ef;border-radius:9px;padding:9px 11px;background:#f8fafc;
+  }
+  .adv-box summary{
+    cursor:pointer;font-size:12px;font-weight:700;color:#4b5563;
+    list-style:none;outline:none;user-select:none;
+  }
+  .adv-box summary::-webkit-details-marker{display:none}
+  .adv-box summary::before{content:'▸ ';color:#8a93a3}
+  .adv-box[open] summary::before{content:'▾ '}
+  .adv-body{margin-top:10px;display:flex;flex-direction:column;gap:9px}
 
   .save-note{
     display:flex;align-items:center;gap:6px;
@@ -114,6 +181,16 @@
     padding:10px 14px;border-bottom:1px solid #eef1f6;font-size:13px;color:#4b5563;
   }
   .preview-bar b{color:#111827}
+  .preview-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .view-switch{display:inline-flex;background:#eef1f7;border-radius:8px;padding:2px;gap:2px}
+  .view-switch[hidden]{display:none!important}
+  .view-btn{
+    font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;border:none;
+    background:transparent;color:#5b6472;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .view-btn:hover{color:#1d4ed8}
+  .view-btn.active{background:#fff;color:#1d4ed8;box-shadow:0 1px 2px rgba(15,23,42,.1)}
+
   .zoom-ctl{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280}
   .zoom-ctl input[type=range]{width:120px;accent-color:#2563eb;cursor:pointer}
   .zoom-val{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#374151}
@@ -123,7 +200,7 @@
     height:calc(100vh - 160px);min-height:420px;overflow:auto;
   }
   .pages{display:flex;flex-direction:column;align-items:center;gap:26px}
-  .paper-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .paper-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
   .paper-cap{font-size:11px;color:#8a93a3;font-variant-numeric:tabular-nums}
   .paper{
     position:relative;background:#fff;overflow:hidden;
@@ -159,6 +236,23 @@
     border-radius:9px;padding:10px 18px;text-align:center;
   }
 
+  .single-nav{
+    display:flex;align-items:center;gap:12px;
+    background:#fff;border:1px solid #e3e8f0;border-radius:10px;
+    padding:6px 10px;box-shadow:0 1px 2px rgba(16,24,40,.05);
+  }
+  .single-nav button{
+    width:36px;height:32px;border-radius:7px;border:1px solid #d7dee9;
+    background:#fff;color:#374151;font-size:17px;line-height:1;cursor:pointer;
+    padding:0;display:flex;align-items:center;justify-content:center;
+  }
+  .single-nav button:hover:not(:disabled){background:#eef2ff;border-color:#b9c6e8;color:#1d4ed8}
+  .single-nav button:disabled{opacity:.35;cursor:not-allowed}
+  .single-nav .counter{
+    font-size:12px;color:#4b5563;font-variant-numeric:tabular-nums;
+    min-width:96px;text-align:center;font-weight:600;
+  }
+
   /* 快递单预览结构 */
   .express-body{display:flex;flex-direction:column;height:100%}
   .express-top-barcode{display:flex;justify-content:center;align-items:center;flex:0 0 auto;overflow:hidden}
@@ -169,7 +263,7 @@
     font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
     color:#111827;
   }
-  .express-vbarcode{flex:0 0 auto;display:flex;align-items:stretch;overflow:hidden}
+  .express-vbarcode{flex:0 0 auto;display:flex;align-items:flex-start;overflow:hidden;align-self:flex-start}
   .express-vbarcode svg{display:block}
   .express-err{font-size:11px;color:#b91c1c;padding:4px;text-align:center;width:100%}
 
@@ -204,7 +298,6 @@
     .label-item svg{display:block}
     .print-err{color:#b91c1c;font-size:8pt;padding:1mm;text-align:center}
 
-    /* 快递单打印布局 */
     .express-label{
       height:129.8mm;box-sizing:border-box;overflow:hidden;
       display:flex;flex-direction:column;
@@ -226,7 +319,7 @@
   <header>
     <div>
       <h1>集包码面单批量生成</h1>
-      <p class="sub">普通模式：一页多个条码 · 快递单模式：每页一个条码横竖各一份 + 自定义内容 · 所有设置自动保存在本地</p>
+      <p class="sub">普通模式：一页多个条码 / 单条翻阅 · 快递单模式：内容与设置分开编辑 · 所有设置自动保存在本地</p>
     </div>
     <div class="mode-switch">
       <button id="modeNormal" class="mode-btn active" type="button">普通模式</button>
@@ -271,6 +364,11 @@
               <input type="number" id="fixedHeight" value="22" min="3" max="120" step="0.5" disabled>
             </label>
           </div>
+          <label class="field">
+            <span class="lbl">单条翻阅条码高度 (mm)</span>
+            <input type="number" id="singleBarH" value="22" min="3" max="120" step="0.5">
+            <span class="hint">仅“单条翻阅”预览生效，默认 22mm</span>
+          </label>
           <label class="checkbox">
             <input type="checkbox" id="showText" checked>
             <span>条码下方显示文本</span>
@@ -307,64 +405,101 @@
 
         <div class="actions">
           <button id="printAll" class="accent" type="button">一键打印面单</button>
+          <button id="downloadZip" class="download" type="button">一键下载条码 ZIP</button>
           <button id="reset" class="ghost" type="button">恢复默认</button>
         </div>
       </div>
 
       <!-- 快递单模式面板 -->
       <div class="panel" id="expressPanel" hidden>
-        <div class="group">
-          <div class="group-title">快递单条码布局</div>
-          <div class="grid2">
-            <label class="field">
-              <span class="lbl">横条码高度 (mm)</span>
-              <input type="number" id="exBarH" value="12" min="4" max="60" step="0.5">
-            </label>
-            <label class="field">
-              <span class="lbl">横条码宽度占比 (%)</span>
-              <input type="number" id="exWidthPct" value="100" min="30" max="100" step="1">
-            </label>
-            <label class="field">
-              <span class="lbl">竖条码宽度 (mm)</span>
-              <input type="number" id="exVBarW" value="12" min="6" max="36" step="0.5">
-            </label>
-            <label class="checkbox" style="padding-top:20px">
+        <!-- 子标签：内容 / 设置 -->
+        <div class="sub-tabs" id="expressSubTabs">
+          <button type="button" class="sub-tab active" data-subtab="content">内容</button>
+          <button type="button" class="sub-tab" data-subtab="settings">设置</button>
+        </div>
+
+        <!-- 子面板：内容 -->
+        <div class="sub-panel" id="expressContentPanel">
+          <div class="group">
+            <div class="group-title">面单页（点击标签切换编辑）</div>
+            <div class="page-tabs" id="pageTabs"></div>
+            <div class="page-editor" id="pageEditor"></div>
+            <details class="adv-box" id="advBox">
+              <summary>高级选项：单独设置纵向条码内容</summary>
+              <div class="adv-body" id="advBody"></div>
+            </details>
+          </div>
+        </div>
+
+        <!-- 子面板：设置 -->
+        <div class="sub-panel" id="expressSettingsPanel" hidden>
+          <div class="group">
+            <div class="group-title">快递单条码布局</div>
+            <div class="grid2">
+              <label class="field">
+                <span class="lbl">横条码高度 (mm)</span>
+                <input type="number" id="exBarH" value="12" min="4" max="60" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">横条码宽度占比 (%)</span>
+                <input type="number" id="exWidthPct" value="100" min="30" max="100" step="1">
+              </label>
+            </div>
+            <label class="checkbox">
               <input type="checkbox" id="exShowText" checked>
               <span>横条码显示文本</span>
             </label>
-          </div>
-        </div>
-
-        <div class="group">
-          <div class="group-title">面单留白与间距（毫米，与普通模式共用）</div>
-          <div class="grid2">
+            <div class="grid2">
+              <label class="checkbox">
+                <input type="checkbox" id="exShowVBarcode" checked>
+                <span>显示竖条码</span>
+              </label>
+              <label class="checkbox" id="exVTextWrap">
+                <input type="checkbox" id="exShowVText" checked>
+                <span>竖条码显示文本</span>
+              </label>
+            </div>
+            <div class="grid2">
+              <label class="field">
+                <span class="lbl">竖条码宽度 (mm，不含文字)</span>
+                <input type="number" id="exVBarW" value="12" min="6" max="36" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">竖条码上边距 (mm)</span>
+                <input type="number" id="exVBarTop" value="0" min="0" max="60" step="0.5">
+              </label>
+            </div>
             <label class="field">
-              <span class="lbl">上边距（图标区）</span>
-              <input type="number" id="exPadTop" value="10" min="0" max="80" step="0.5">
-            </label>
-            <label class="field">
-              <span class="lbl">下边距</span>
-              <input type="number" id="exPadBottom" value="3" min="0" max="80" step="0.5">
-            </label>
-            <label class="field">
-              <span class="lbl">左边距</span>
-              <input type="number" id="exPadLeft" value="2" min="0" max="40" step="0.5">
-            </label>
-            <label class="field">
-              <span class="lbl">右边距</span>
-              <input type="number" id="exPadRight" value="2" min="0" max="40" step="0.5">
-            </label>
-            <label class="field">
-              <span class="lbl">间距</span>
-              <input type="number" id="exGap" value="1.5" min="0" max="40" step="0.5">
+              <span class="lbl">竖条码长度 (mm，0 = 自动铺满剩余高度)</span>
+              <input type="number" id="exVBarH" value="0" min="0" max="120" step="0.5">
             </label>
           </div>
-        </div>
 
-        <div class="group">
-          <div class="group-title">面单页（每页一个条码，可添加多页）</div>
-          <div class="express-pages-list" id="expressPagesList"></div>
-          <button id="addPage" class="small-add" type="button">＋ 添加一页</button>
+          <div class="group">
+            <div class="group-title">面单留白与间距（毫米，与普通模式共用）</div>
+            <div class="grid2">
+              <label class="field">
+                <span class="lbl">上边距（图标区）</span>
+                <input type="number" id="exPadTop" value="10" min="0" max="80" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">下边距</span>
+                <input type="number" id="exPadBottom" value="3" min="0" max="80" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">左边距</span>
+                <input type="number" id="exPadLeft" value="2" min="0" max="40" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">右边距</span>
+                <input type="number" id="exPadRight" value="2" min="0" max="40" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">间距</span>
+                <input type="number" id="exGap" value="1.5" min="0" max="40" step="0.5">
+              </label>
+            </div>
+          </div>
         </div>
 
         <div id="warnExpress" class="warn" hidden></div>
@@ -386,10 +521,16 @@
     <main class="preview-pane">
       <div class="preview-bar">
         <span id="previewTitle">打印预览 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）</span>
-        <div class="zoom-ctl">
-          <span>缩放</span>
-          <input type="range" id="zoom" min="0.6" max="3" step="0.05" value="1.5">
-          <span class="zoom-val" id="zoomVal">150%</span>
+        <div class="preview-tools">
+          <div class="view-switch" id="viewSwitch">
+            <button type="button" class="view-btn active" data-view="list">列表预览</button>
+            <button type="button" class="view-btn" data-view="single">单条翻阅</button>
+          </div>
+          <div class="zoom-ctl">
+            <span>缩放</span>
+            <input type="range" id="zoom" min="0.6" max="3" step="0.05" value="1.5">
+            <span class="zoom-val" id="zoomVal">150%</span>
+          </div>
         </div>
       </div>
       <div class="preview-scroll" id="previewScroll">
@@ -432,16 +573,22 @@
   const PREVIEW_MAX_PAGES = 20;
   const STORAGE_KEY_V2 = 'barcode_label_settings_v2';
   const STORAGE_KEY_V1 = 'barcode_label_settings_v1';
+  const ZIP_DPI = 16;
+  const ZIP_DEFAULT_BAR_H = 18;
 
   /* ================= DOM ================= */
   const $ = id => document.getElementById(id);
   const normalPanel  = $('normalPanel');
   const expressPanel = $('expressPanel');
+  const expressSubTabs = $('expressSubTabs');
+  const expressContentPanel = $('expressContentPanel');
+  const expressSettingsPanel = $('expressSettingsPanel');
   const inputEl      = $('input');
   const perPageEl    = $('perPage');
   const widthPctEl   = $('widthPct');
   const heightModeEl = $('heightMode');
   const fixedHEl     = $('fixedHeight');
+  const singleBarHEl = $('singleBarH');
   const showTextEl   = $('showText');
   const padTopEl     = $('padTop');
   const padBottomEl  = $('padBottom');
@@ -451,17 +598,24 @@
   const warnEl       = $('warn');
   const warnExpress  = $('warnExpress');
 
-  const exBarHEl     = $('exBarH');
-  const exWidthPctEl = $('exWidthPct');
-  const exVBarWEl    = $('exVBarW');
-  const exShowTextEl = $('exShowText');
-  const exPadTopEl   = $('exPadTop');
-  const exPadBottomEl= $('exPadBottom');
-  const exPadLeftEl  = $('exPadLeft');
-  const exPadRightEl = $('exPadRight');
-  const exGapEl      = $('exGap');
-  const expressPagesList = $('expressPagesList');
+  const exBarHEl         = $('exBarH');
+  const exWidthPctEl     = $('exWidthPct');
+  const exVBarWEl        = $('exVBarW');
+  const exVBarTopEl      = $('exVBarTop');
+  const exVBarHEl        = $('exVBarH');
+  const exShowTextEl     = $('exShowText');
+  const exShowVBarcodeEl = $('exShowVBarcode');
+  const exShowVTextEl    = $('exShowVText');
+  const exPadTopEl       = $('exPadTop');
+  const exPadBottomEl    = $('exPadBottom');
+  const exPadLeftEl      = $('exPadLeft');
+  const exPadRightEl     = $('exPadRight');
+  const exGapEl          = $('exGap');
+  const pageTabs         = $('pageTabs');
+  const pageEditor       = $('pageEditor');
+  const advBody          = $('advBody');
 
+  const viewSwitch   = $('viewSwitch');
   const zoomEl       = $('zoom');
   const zoomValEl    = $('zoomVal');
   const previewPages = $('previewPages');
@@ -469,6 +623,7 @@
   const saveDot      = $('saveDot');
   const saveText     = $('saveText');
   const previewTitle = $('previewTitle');
+  const downloadZipBtn = $('downloadZip');
 
   /* ================= 默认状态 ================= */
   const DEFAULT_NORMAL = {
@@ -477,19 +632,28 @@
     widthPct: '100',
     heightMode: 'auto',
     fixedHeight: '22',
+    singleBarH: '22',
     showText: true,
     padTop: '10',
     padBottom: '3',
     padLeft: '2',
     padRight: '2',
     gap: '1.5',
-    zoom: '1.5'
+    zoom: '1.5',
+    previewMode: 'list',
+    singleIndex: 0
   };
   const DEFAULT_EXPRESS = {
     barH: '12',
     widthPct: '100',
     vBarW: '12',
+    vBarTop: '0',
+    vBarH: '0',
     showText: true,
+    showVBarcode: true,
+    showVText: true,
+    subTab: 'content',
+    currentPage: 0,
     pages: [{
       barcode: 'SF1234567890123',
       vBarcode: '',
@@ -518,6 +682,11 @@
     if (cls) d.className = cls;
     return d;
   }
+  function chunkArray(arr, n) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+    return out;
+  }
 
   /* ================= 状态采集与同步 ================= */
   function syncNormalFromDOM() {
@@ -526,6 +695,7 @@
     state.normal.widthPct = widthPctEl.value;
     state.normal.heightMode = heightModeEl.value;
     state.normal.fixedHeight = fixedHEl.value;
+    state.normal.singleBarH = singleBarHEl.value;
     state.normal.showText = showTextEl.checked;
     state.normal.padTop = padTopEl.value;
     state.normal.padBottom = padBottomEl.value;
@@ -542,6 +712,7 @@
     widthPctEl.value = n.widthPct;
     heightModeEl.value = n.heightMode;
     fixedHEl.value = n.fixedHeight;
+    singleBarHEl.value = n.singleBarH;
     showTextEl.checked = !!n.showText;
     padTopEl.value = n.padTop;
     padBottomEl.value = n.padBottom;
@@ -556,11 +727,24 @@
     exBarHEl.value = x.barH;
     exWidthPctEl.value = x.widthPct;
     exVBarWEl.value = x.vBarW;
-    exShowTextEl.checked = !!x.showText;
+    exVBarTopEl.value = x.vBarTop;
+    exVBarHEl.value = x.vBarH;
+    exShowTextEl.checked = x.showText !== false;
+    exShowVBarcodeEl.checked = x.showVBarcode !== false;
+    exShowVTextEl.checked = x.showVText !== false;
     syncPaddingInputs();
+    syncVTextAvailability();
+    renderExpressSubTabs();
+    renderExpressPageEditor();
   }
 
-  // 边距与间距共用，双向同步
+  function syncVTextAvailability() {
+    const disabled = !state.express.showVBarcode;
+    exShowVTextEl.disabled = disabled;
+    const wrap = $('exVTextWrap');
+    if (wrap) wrap.style.opacity = disabled ? '.45' : '1';
+  }
+
   function syncPaddingInputs() {
     const n = state.normal;
     padTopEl.value = n.padTop;
@@ -574,6 +758,13 @@
     exPadLeftEl.value = n.padLeft;
     exPadRightEl.value = n.padRight;
     exGapEl.value = n.gap;
+  }
+
+  function updateViewSwitchUI() {
+    const btns = viewSwitch.querySelectorAll('.view-btn');
+    btns.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.view === state.normal.previewMode);
+    });
   }
 
   /* ================= 持久化 ================= */
@@ -611,6 +802,16 @@
     if (!s || typeof s !== 'object') return false;
     const n = Object.assign({}, DEFAULT_NORMAL, s.normal || {});
     const x = Object.assign({}, DEFAULT_EXPRESS, s.express || {});
+
+    x.showText = x.showText !== false;
+    x.showVBarcode = x.showVBarcode !== false;
+    x.showVText = x.showVText !== false;
+    x.subTab = x.subTab === 'settings' ? 'settings' : 'content';
+
+    if (n.previewMode !== 'single') n.previewMode = 'list';
+    n.singleIndex = Math.max(0, parseInt(n.singleIndex, 10) || 0);
+    if (n.singleBarH == null || n.singleBarH === '') n.singleBarH = DEFAULT_NORMAL.singleBarH;
+
     if (!Array.isArray(x.pages) || !x.pages.length) {
       x.pages = clone(DEFAULT_EXPRESS.pages);
     } else {
@@ -622,6 +823,10 @@
         };
       });
     }
+
+    if (x.currentPage == null || x.currentPage === '') x.currentPage = 0;
+    x.currentPage = Math.max(0, Math.min(x.pages.length - 1, parseInt(x.currentPage, 10) || 0));
+
     state.mode = s.mode === 'express' ? 'express' : 'normal';
     state.normal = n;
     state.express = x;
@@ -645,7 +850,6 @@
       } catch (e) { /* 继续尝试旧版本 */ }
     }
 
-    // 尝试迁移旧版普通模式设置
     try {
       const old = localStorage.getItem(STORAGE_KEY_V1);
       if (old) {
@@ -762,43 +966,62 @@
     return svg;
   }
 
-  /* ================= 竖向 SVG（右侧竖条码） ================= */
-  function buildVerticalSVG(text, width, height, unit) {
+  /* ================= 竖向 SVG ================= */
+  function buildVerticalSVG(text, barcodeW, height, textW, fontSize, showText, unit) {
     const info = code128Runs(text);
     const runs = info.runs;
     const quiet = 10;
     const totalModules = info.totalModules + quiet * 2;
-    const mh = height / totalModules;       // 每个模块的竖向厚度
+    const mh = height / totalModules;
+    const show = !!showText && textW > 0 && fontSize > 0;
+    const offsetX = show ? textW : 0;
+    const totalW = barcodeW + offsetX;
     const u = unit || '';
 
     const svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('xmlns', SVGNS);
-    svg.setAttribute('width', width + u);
+    svg.setAttribute('width', totalW + u);
     svg.setAttribute('height', height + u);
-    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('viewBox', '0 0 ' + totalW + ' ' + height);
 
     const bg = document.createElementNS(SVGNS, 'rect');
     bg.setAttribute('x', 0);
     bg.setAttribute('y', 0);
-    bg.setAttribute('width', width);
+    bg.setAttribute('width', totalW);
     bg.setAttribute('height', height);
     bg.setAttribute('fill', '#ffffff');
     svg.appendChild(bg);
 
     for (let i = 0; i < runs.length; i++) {
       const rect = document.createElementNS(SVGNS, 'rect');
-      rect.setAttribute('x', 0);
+      rect.setAttribute('x', offsetX);
       rect.setAttribute('y', ((runs[i][0] + quiet) * mh).toFixed(4));
-      rect.setAttribute('width', width);
+      rect.setAttribute('width', barcodeW);
       rect.setAttribute('height', (runs[i][1] * mh).toFixed(4));
       rect.setAttribute('fill', '#000000');
       svg.appendChild(rect);
     }
 
+    if (show) {
+      const cx = textW / 2;
+      const cy = height / 2;
+      const t = document.createElementNS(SVGNS, 'text');
+      t.setAttribute('x', cx.toFixed(3));
+      t.setAttribute('y', cy.toFixed(3));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'central');
+      t.setAttribute('transform', 'rotate(-90 ' + cx.toFixed(3) + ' ' + cy.toFixed(3) + ')');
+      t.setAttribute('font-family', "ui-monospace, 'Courier New', monospace");
+      t.setAttribute('font-size', fontSize.toFixed(3));
+      t.setAttribute('fill', '#000000');
+      t.textContent = text;
+      svg.appendChild(t);
+    }
+
     return svg;
   }
 
-  /* ================= 导出 PNG ================= */
+  /* ================= 导出 PNG（单条） ================= */
   function downloadPNG(svg, name) {
     const w = parseFloat(svg.getAttribute('width'));
     const h = parseFloat(svg.getAttribute('height'));
@@ -836,14 +1059,252 @@
     img.src = url;
   }
 
-  /* ================= 普通模式配置 ================= */
+  /* ================= SVG → PNG Blob ================= */
+  function svgToPngBlob(svg, width, height) {
+    return new Promise(function (resolve, reject) {
+      const svgString = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob(['<?xml version="1.0" standalone="no"?>\n' + svgString],
+                            { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = function () {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          canvas.toBlob(function (b) {
+            if (b) resolve(b);
+            else reject(new Error('PNG 生成失败'));
+          }, 'image/png');
+        } catch (e) {
+          URL.revokeObjectURL(url);
+          reject(e);
+        }
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error('条码渲染失败'));
+      };
+      img.src = url;
+    });
+  }
+
+  /* ================= 极简 ZIP 打包（Store 模式） ================= */
+  const CRC_TABLE = (function () {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      }
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+
+  function crc32(u8) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < u8.length; i++) {
+      c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+    }
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function buildZip(files) {
+    const enc = new TextEncoder();
+    const parts = [];
+    const central = [];
+    let offset = 0;
+
+    files.forEach(function (f) {
+      const nameBytes = enc.encode(f.name);
+      const data = f.data;
+      const size = data.length;
+      const crc = crc32(data);
+
+      const lh = new Uint8Array(30 + nameBytes.length);
+      const ldv = new DataView(lh.buffer);
+      ldv.setUint32(0, 0x04034b50, true);
+      ldv.setUint16(4, 20, true);
+      ldv.setUint16(6, 0x0800, true);
+      ldv.setUint16(8, 0, true);
+      ldv.setUint16(10, 0, true);
+      ldv.setUint16(12, 0x21, true);
+      ldv.setUint32(14, crc, true);
+      ldv.setUint32(18, size, true);
+      ldv.setUint32(22, size, true);
+      ldv.setUint16(26, nameBytes.length, true);
+      ldv.setUint16(28, 0, true);
+      lh.set(nameBytes, 30);
+      parts.push(lh, data);
+
+      const ch = new Uint8Array(46 + nameBytes.length);
+      const cdv = new DataView(ch.buffer);
+      cdv.setUint32(0, 0x02014b50, true);
+      cdv.setUint16(4, 20, true);
+      cdv.setUint16(6, 20, true);
+      cdv.setUint16(8, 0x0800, true);
+      cdv.setUint16(10, 0, true);
+      cdv.setUint16(12, 0, true);
+      cdv.setUint16(14, 0x21, true);
+      cdv.setUint32(16, crc, true);
+      cdv.setUint32(20, size, true);
+      cdv.setUint32(24, size, true);
+      cdv.setUint16(28, nameBytes.length, true);
+      cdv.setUint16(30, 0, true);
+      cdv.setUint16(32, 0, true);
+      cdv.setUint16(34, 0, true);
+      cdv.setUint16(36, 0, true);
+      cdv.setUint32(38, 0, true);
+      cdv.setUint32(42, offset, true);
+      ch.set(nameBytes, 46);
+      central.push(ch);
+
+      offset += lh.length + size;
+    });
+
+    let centralSize = 0;
+    central.forEach(function (c) { centralSize += c.length; });
+
+    const eocd = new Uint8Array(22);
+    const edv = new DataView(eocd.buffer);
+    edv.setUint32(0, 0x06054b50, true);
+    edv.setUint16(4, 0, true);
+    edv.setUint16(6, 0, true);
+    edv.setUint16(8, files.length, true);
+    edv.setUint16(10, files.length, true);
+    edv.setUint32(12, centralSize, true);
+    edv.setUint32(16, offset, true);
+    edv.setUint16(20, 0, true);
+
+    return new Blob(parts.concat(central, [eocd]), { type: 'application/zip' });
+  }
+
+  /* ================= 文件名工具 ================= */
+  function padSeq(n) {
+    return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n;
+  }
+  function safeFileName(s) {
+    let name = String(s).replace(/[\\/:*?"<>|\x00-\x1F]/g, '_').trim();
+    if (!name) name = 'barcode';
+    if (name.length > 80) name = name.slice(0, 80);
+    return name;
+  }
+  function buildTimestamp() {
+    const d = new Date();
+    const p2 = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + '-' +
+           p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+  }
+  function triggerBlobDownload(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+  }
+
+  /* ================= 一键下载全部条码 ZIP ================= */
+  function validateAscii(text) {
+    if (!text.length) return false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      if (c < 32 || c > 126) return false;
+    }
+    return true;
+  }
+
+  async function downloadAllBarcodes() {
+    syncNormalFromDOM();
+
+    const allLines = getNormalLines();
+    if (!allLines.length) {
+      alert('请先在左侧输入至少一行条码内容');
+      return;
+    }
+    const lines = allLines.slice(0, MAX_LINES);
+    if (allLines.length > MAX_LINES) {
+      alert('条码数量超过 ' + MAX_LINES + ' 个，将只导出前 ' + MAX_LINES + ' 个');
+    }
+
+    const bad = [];
+    lines.forEach(function (l, i) {
+      if (!validateAscii(l)) bad.push(i + 1);
+    });
+    if (bad.length) {
+      const shown = bad.slice(0, 10).join('、');
+      alert('以下行包含不支持的字符（仅支持 ASCII 可见字符），请修改后重试：\n第 ' + shown +
+            (bad.length > 10 ? ' 等 ' + bad.length + ' 行' : ' 行'));
+      return;
+    }
+
+    const cfg = getNormalConfig();
+    const textHmm = cfg.showText ? TEXT_H : 0;
+    const barHmm = cfg.heightMode === 'fixed' ? cfg.fixedHeight : ZIP_DEFAULT_BAR_H;
+    const contentW = Math.max(5, PAGE_W - cfg.padLeft - cfg.padRight);
+    const barcodeWmm = Math.max(20, contentW * cfg.widthPct / 100);
+
+    const W = Math.max(60, Math.round(barcodeWmm * ZIP_DPI));
+    const HB = Math.max(20, Math.round(barHmm * ZIP_DPI));
+    const HT = Math.round(textHmm * ZIP_DPI);
+
+    const btn = downloadZipBtn;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+
+    try {
+      const files = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        btn.textContent = '生成中 ' + (i + 1) + ' / ' + lines.length;
+
+        if (i > 0 && i % 5 === 0) {
+          await new Promise(function (r) { setTimeout(r, 0); });
+        }
+
+        const fontMM = cfg.showText ? pickFontMM(line, barcodeWmm, textHmm) : 0;
+        const fontPx = fontMM * ZIP_DPI;
+        const svg = buildSVG(line, W, HB, HT, fontPx, '');
+        const blob = await svgToPngBlob(svg, W, HB + HT);
+        const data = new Uint8Array(await blob.arrayBuffer());
+
+        files.push({
+          name: padSeq(i + 1) + '_' + safeFileName(line) + '.png',
+          data: data
+        });
+      }
+
+      btn.textContent = '打包中…';
+      await new Promise(function (r) { setTimeout(r, 0); });
+
+      const zipBlob = buildZip(files);
+      const zipName = '条形码_' + buildTimestamp() + '_' + files.length + '.zip';
+      triggerBlobDownload(zipBlob, zipName);
+    } catch (err) {
+      alert('导出失败：' + (err && err.message ? err.message : '未知错误'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
+  /* ================= 普通模式配置与布局 ================= */
   function getNormalConfig() {
     const n = state.normal;
     return {
-      perPage: Math.round(clampNum(n.perPage, 1, 20, 3)),
+      perPage: Math.round(clampNum(n.perPage, 1, 20, 6)),
       widthPct: clampNum(n.widthPct, 20, 100, 100),
       heightMode: n.heightMode === 'fixed' ? 'fixed' : 'auto',
       fixedHeight: clampNum(n.fixedHeight, 3, 120, 22),
+      singleBarH: clampNum(n.singleBarH, 3, 120, 22),
       showText: !!n.showText,
       padTop: clampNum(n.padTop, 0, 80, 10),
       padBottom: clampNum(n.padBottom, 0, 80, 3),
@@ -855,10 +1316,9 @@
   }
 
   function getNormalLines() {
-    return state.normal.input.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    return state.normal.input.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
   }
 
-  /* ================= 普通模式布局 ================= */
   function computeNormalLayout(cfg, n) {
     const contentW = Math.max(5, PAGE_W - cfg.padLeft - cfg.padRight);
     const contentH = Math.max(5, PAGE_H - cfg.padTop - cfg.padBottom);
@@ -885,21 +1345,41 @@
     return { contentW, contentH, barH, unitH, textH, overflow };
   }
 
+  function computeSingleLayout(cfg) {
+    const base = computeNormalLayout(cfg, 1);
+    const textH = cfg.showText ? TEXT_H : 0;
+    const barH = Math.max(3, cfg.singleBarH);
+    const unitH = barH + textH;
+    const overflow = unitH > base.contentH + 0.001;
+    return {
+      contentW: base.contentW,
+      contentH: base.contentH,
+      barH: barH,
+      unitH: unitH,
+      textH: textH,
+      overflow: overflow
+    };
+  }
+
   function pickFontMM(text, barcodeW, textH) {
     if (textH <= 0) return 0;
     const byWidth = (barcodeW - 1.2) / Math.max(1, text.length * 0.62);
     return Math.max(1.0, Math.min(textH * 0.74, byWidth, 3.4));
   }
 
-  /* ================= 快递单布局计算 ================= */
+  /* ================= 快递单配置与布局 ================= */
   function getExpressConfig() {
     const n = state.normal;
     const x = state.express;
     return {
-      barH: clampNum(x.barH, 4, 60, 18),
+      barH: clampNum(x.barH, 4, 60, 12),
       widthPct: clampNum(x.widthPct, 30, 100, 100),
       vBarW: clampNum(x.vBarW, 6, 36, 12),
-      showText: !!x.showText,
+      vBarTop: clampNum(x.vBarTop, 0, 60, 0),
+      vBarH: clampNum(x.vBarH, 0, 120, 0),
+      showText: x.showText !== false,
+      showVBarcode: x.showVBarcode !== false,
+      showVText: x.showVText !== false,
       padTop: clampNum(n.padTop, 0, 80, 10),
       padBottom: clampNum(n.padBottom, 0, 80, 3),
       padLeft: clampNum(n.padLeft, 0, 40, 2),
@@ -915,14 +1395,31 @@
     const textH = cfg.showText ? TEXT_H : 0;
     const topH = cfg.barH + textH;
     const midH = Math.max(3, contentH - topH - cfg.gap);
-    const contentAreaW = Math.max(4, contentW - cfg.vBarW - cfg.gap);
+
+    const vTextW = (cfg.showVBarcode && cfg.showVText) ? TEXT_H : 0;
+    const vbTotalW = cfg.showVBarcode ? (cfg.vBarW + vTextW) : 0;
+    const reserveW = cfg.showVBarcode ? (vbTotalW + cfg.gap) : 0;
+    const contentAreaW = Math.max(4, contentW - reserveW);
+
+    const maxTop = Math.max(0, midH - 8);
+    const vBarTop = cfg.showVBarcode ? Math.min(cfg.vBarTop, maxTop) : 0;
+    const availH = Math.max(4, midH - vBarTop);
+    let vBarH = availH;
+    if (cfg.showVBarcode && cfg.vBarH > 0) {
+      vBarH = Math.min(cfg.vBarH, availH);
+    }
+
     return {
       contentW,
       contentH,
       topH,
       midH,
+      vTextW,
+      vbTotalW,
       contentAreaW,
-      contentAreaH: midH
+      contentAreaH: midH,
+      vBarTop,
+      vBarH
     };
   }
 
@@ -942,76 +1439,170 @@
     return 1.7;
   }
 
-  /* ================= 渲染快递单页卡片 ================= */
-  function renderExpressPageCards() {
-    expressPagesList.innerHTML = '';
-    const pages = state.express.pages;
-
-    pages.forEach(function (page, i) {
-      const card = el('div', 'express-page-card');
-      card.dataset.index = i;
-
-      const head = el('div', 'epc-head');
-      const title = el('span', 'epc-title');
-      title.textContent = '第 ' + (i + 1) + ' 页';
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'epc-del';
-      del.dataset.action = 'del';
-      del.textContent = '删除';
-      del.disabled = pages.length <= 1;
-      head.appendChild(title);
-      head.appendChild(del);
-      card.appendChild(head);
-
-      const bcField = el('label', 'field');
-      const bcLbl = el('span', 'lbl');
-      bcLbl.textContent = '条码内容（横 / 竖）';
-      const bcInput = document.createElement('input');
-      bcInput.type = 'text';
-      bcInput.dataset.field = 'barcode';
-      bcInput.value = page.barcode;
-      bcInput.placeholder = '输入运单号 / 集包码';
-      bcField.appendChild(bcLbl);
-      bcField.appendChild(bcInput);
-      card.appendChild(bcField);
-
-      const vbField = el('label', 'field');
-      const vbLbl = el('span', 'lbl');
-      vbLbl.textContent = '竖条码内容（留空则同上）';
-      const vbInput = document.createElement('input');
-      vbInput.type = 'text';
-      vbInput.dataset.field = 'vBarcode';
-      vbInput.value = page.vBarcode;
-      vbInput.placeholder = '留空则使用左侧条码内容';
-      vbField.appendChild(vbLbl);
-      vbField.appendChild(vbInput);
-      card.appendChild(vbField);
-
-      const ctField = el('label', 'field');
-      const ctLbl = el('span', 'lbl');
-      ctLbl.textContent = '自定义内容（姓名 / 电话 / 地址等）';
-      const ctArea = document.createElement('textarea');
-      ctArea.rows = 4;
-      ctArea.dataset.field = 'content';
-      ctArea.value = page.content;
-      ctArea.placeholder = '姓名：\n电话：\n地址：';
-      ctField.appendChild(ctLbl);
-      ctField.appendChild(ctArea);
-      card.appendChild(ctField);
-
-      expressPagesList.appendChild(card);
-    });
+  function pickVerticalFontMM(text, heightMM, textWMM) {
+    if (textWMM <= 0 || !text) return 0;
+    const byHeight = (heightMM - 1) / Math.max(1, text.length * 0.62);
+    const byWidth = textWMM * 0.72;
+    return Math.max(1.0, Math.min(byWidth, byHeight, 3.2));
   }
 
-  /* ================= 普通模式预览 ================= */
-  function renderNormalPreview() {
-    const cfg = getNormalConfig();
-    const allLines = getNormalLines();
+  /* ================= 快递单子标签切换 ================= */
+  function renderExpressSubTabs() {
+    const sub = state.express.subTab === 'settings' ? 'settings' : 'content';
+    const btns = expressSubTabs.querySelectorAll('.sub-tab');
+    btns.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.subtab === sub);
+    });
+    expressContentPanel.hidden = sub !== 'content';
+    expressSettingsPanel.hidden = sub !== 'settings';
+  }
+
+  /* ================= 快递单：标签栏 + 编辑区 + 高级选项 ================= */
+  function renderExpressPageEditor() {
+    const pages = state.express.pages;
+    let cur = state.express.currentPage || 0;
+    if (cur >= pages.length) cur = pages.length - 1;
+    if (cur < 0) cur = 0;
+    state.express.currentPage = cur;
+
+    /* --- 页标签栏 --- */
+    pageTabs.innerHTML = '';
+    pages.forEach(function (p, i) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'page-tab' + (i === cur ? ' active' : '');
+      btn.dataset.index = i;
+      btn.textContent = '第 ' + (i + 1) + ' 页';
+      pageTabs.appendChild(btn);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'page-tab-add';
+    addBtn.dataset.action = 'add';
+    addBtn.textContent = '＋';
+    addBtn.title = '添加一页';
+    pageTabs.appendChild(addBtn);
+
+    /* --- 当前页编辑区 --- */
+    pageEditor.innerHTML = '';
+    const page = pages[cur];
+
+    const head = el('div', 'page-editor-head');
+    const title = el('span', 'epc-title');
+    title.textContent = '第 ' + (cur + 1) + ' 页内容';
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'epc-del';
+    del.dataset.action = 'del';
+    del.textContent = '删除本页';
+    del.disabled = pages.length <= 1;
+    head.appendChild(title);
+    head.appendChild(del);
+    pageEditor.appendChild(head);
+
+    const bcField = el('label', 'field');
+    const bcLbl = el('span', 'lbl');
+    bcLbl.textContent = '条码内容（横条码使用）';
+    const bcInput = document.createElement('input');
+    bcInput.type = 'text';
+    bcInput.dataset.field = 'barcode';
+    bcInput.value = page.barcode;
+    bcInput.placeholder = '输入运单号 / 集包码';
+    bcField.appendChild(bcLbl);
+    bcField.appendChild(bcInput);
+    pageEditor.appendChild(bcField);
+
+    const ctField = el('label', 'field');
+    const ctLbl = el('span', 'lbl');
+    ctLbl.textContent = '自定义内容（姓名 / 电话 / 地址等）';
+    const ctArea = document.createElement('textarea');
+    ctArea.rows = 5;
+    ctArea.dataset.field = 'content';
+    ctArea.value = page.content;
+    ctArea.placeholder = '姓名：\n电话：\n地址：';
+    ctField.appendChild(ctLbl);
+    ctField.appendChild(ctArea);
+    pageEditor.appendChild(ctField);
+
+    /* --- 高级选项：纵向条码内容 --- */
+    advBody.innerHTML = '';
+    const advField = el('label', 'field');
+    const advLbl = el('span', 'lbl');
+    advLbl.textContent = '纵向条码内容';
+    const advInput = document.createElement('input');
+    advInput.type = 'text';
+    advInput.dataset.field = 'vBarcode';
+    advInput.value = page.vBarcode || '';
+    advInput.placeholder = '留空则与上方条码内容一致';
+    const advHint = el('span', 'hint');
+    advHint.textContent = '仅影响右侧竖条码；横条码始终使用上方“条码内容”。';
+    advField.appendChild(advLbl);
+    advField.appendChild(advInput);
+    advField.appendChild(advHint);
+    advBody.appendChild(advField);
+  }
+
+  /* ================= 普通模式：构建一张面单 ================= */
+  function buildNormalPaper(cfg, layout, chunk, u, barcodeWMM) {
+    const paper = el('div', 'paper');
+    paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
+    paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
+
+    if (cfg.padTop > 0) {
+      const guide = el('div', 'guide-top');
+      guide.style.height = (cfg.padTop * u).toFixed(2) + 'px';
+      guide.textContent = '厂商图标区 ' + cfg.padTop + 'mm';
+      paper.appendChild(guide);
+    }
+
+    const body = el('div', 'paper-body');
+    body.style.padding =
+      (cfg.padTop * u).toFixed(2) + 'px ' +
+      (cfg.padRight * u).toFixed(2) + 'px ' +
+      (cfg.padBottom * u).toFixed(2) + 'px ' +
+      (cfg.padLeft * u).toFixed(2) + 'px';
+    body.style.gap = (cfg.gap * u).toFixed(2) + 'px';
+    body.style.justifyContent = 'flex-start';
+
+    chunk.forEach(function (line) {
+      const item = el('div', 'paper-item');
+      item.style.height = (layout.unitH * u).toFixed(2) + 'px';
+
+      let svg = null;
+      try {
+        const fontMM = pickFontMM(line, barcodeWMM, layout.textH);
+        svg = buildSVG(line, barcodeWMM * u, layout.barH * u, layout.textH * u, fontMM * u, '');
+        item.appendChild(svg);
+      } catch (err) {
+        const e = el('div', 'paper-err');
+        e.textContent = '内容无效：' + err.message;
+        item.appendChild(e);
+      }
+
+      if (svg) {
+        const dl = document.createElement('button');
+        dl.className = 'dl-btn';
+        dl.type = 'button';
+        dl.textContent = '⬇ PNG';
+        dl.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          downloadPNG(svg, line);
+        });
+        item.appendChild(dl);
+      }
+      body.appendChild(item);
+    });
+
+    paper.appendChild(body);
+    return paper;
+  }
+
+  /* ================= 普通模式：列表预览 ================= */
+  function renderNormalListPreview(cfg, allLines) {
     const lines = allLines.slice(0, MAX_LINES);
     const layout = computeNormalLayout(cfg, cfg.perPage);
 
-    // 警告
     const msgs = [];
     if (cfg.padTop + cfg.padBottom > PAGE_H - 12) msgs.push('上下边距之和过大，可用高度不足。');
     if (layout.overflow) msgs.push('条码总高度超出可用区域，已自动压缩，建议减小条码高度或每页数量。');
@@ -1021,7 +1612,7 @@
     else warnEl.hidden = true;
 
     zoomValEl.textContent = Math.round(cfg.zoom * 100) + '%';
-    previewTitle.innerHTML = '打印预览 · 普通模式 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）';
+    previewTitle.innerHTML = '打印预览 · 普通模式 · 列表 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）';
 
     previewPages.innerHTML = '';
     if (!lines.length) {
@@ -1040,58 +1631,7 @@
       const cap = el('div', 'paper-cap');
       cap.textContent = '第 ' + (pi + 1) + ' / ' + allPages.length + ' 张 · 76 × 130 mm';
       wrap.appendChild(cap);
-
-      const paper = el('div', 'paper');
-      paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
-      paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
-
-      if (cfg.padTop > 0) {
-        const guide = el('div', 'guide-top');
-        guide.style.height = (cfg.padTop * u).toFixed(2) + 'px';
-        guide.textContent = '厂商图标区 ' + cfg.padTop + 'mm';
-        paper.appendChild(guide);
-      }
-
-      const body = el('div', 'paper-body');
-      body.style.padding =
-        (cfg.padTop * u).toFixed(2) + 'px ' +
-        (cfg.padRight * u).toFixed(2) + 'px ' +
-        (cfg.padBottom * u).toFixed(2) + 'px ' +
-        (cfg.padLeft * u).toFixed(2) + 'px';
-      body.style.gap = (cfg.gap * u).toFixed(2) + 'px';
-      body.style.justifyContent = 'flex-start';
-
-      chunk.forEach(function (line) {
-        const item = el('div', 'paper-item');
-        item.style.height = (layout.unitH * u).toFixed(2) + 'px';
-
-        let svg = null;
-        try {
-          const fontMM = pickFontMM(line, barcodeWMM, layout.textH);
-          svg = buildSVG(line, barcodeWMM * u, layout.barH * u, layout.textH * u, fontMM * u, '');
-          item.appendChild(svg);
-        } catch (err) {
-          const e = el('div', 'paper-err');
-          e.textContent = '内容无效：' + err.message;
-          item.appendChild(e);
-        }
-
-        if (svg) {
-          const dl = document.createElement('button');
-          dl.className = 'dl-btn';
-          dl.type = 'button';
-          dl.textContent = '⬇ PNG';
-          dl.addEventListener('click', function (ev) {
-            ev.stopPropagation();
-            downloadPNG(svg, line);
-          });
-          item.appendChild(dl);
-        }
-        body.appendChild(item);
-      });
-
-      paper.appendChild(body);
-      wrap.appendChild(paper);
+      wrap.appendChild(buildNormalPaper(cfg, layout, chunk, u, barcodeWMM));
       frag.appendChild(wrap);
     });
 
@@ -1101,6 +1641,93 @@
       const more = el('div', 'page-more');
       more.textContent = '为保持流畅，预览仅显示前 ' + PREVIEW_MAX_PAGES + ' 页，打印时会输出全部 ' + allPages.length + ' 页';
       previewPages.appendChild(more);
+    }
+  }
+
+  /* ================= 普通模式：单条翻阅预览 ================= */
+  function renderNormalSinglePreview(cfg, allLines) {
+    const lines = allLines.slice(0, MAX_LINES);
+    const total = lines.length;
+
+    const layout = computeSingleLayout(cfg);
+
+    const msgs = [];
+    if (cfg.padTop + cfg.padBottom > PAGE_H - 12) msgs.push('上下边距之和过大，可用高度不足。');
+    if (layout.overflow) msgs.push('条码高度 ' + layout.barH.toFixed(1) + ' mm 超出可用区域，建议减小单条翻阅高度或上下边距。');
+    if (layout.barH < 6) msgs.push('当前条码高度仅 ' + layout.barH.toFixed(1) + ' mm，可能影响扫描识别。');
+    if (allLines.length > MAX_LINES) msgs.push('条码数量超过 ' + MAX_LINES + ' 个，仅显示前 ' + MAX_LINES + ' 个。');
+    if (msgs.length) { warnEl.textContent = msgs.join(' '); warnEl.hidden = false; }
+    else warnEl.hidden = true;
+
+    zoomValEl.textContent = Math.round(cfg.zoom * 100) + '%';
+    previewTitle.innerHTML = '打印预览 · 普通模式 · 单条翻阅（高度 ' + layout.barH.toFixed(1) +
+      ' mm）· 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）';
+
+    previewPages.innerHTML = '';
+    if (!total) {
+      previewPages.innerHTML = '<div class="empty-tip">在左侧输入条码内容，每行一个，右侧即实时预览</div>';
+      return;
+    }
+
+    let idx = state.normal.singleIndex || 0;
+    if (idx >= total) idx = total - 1;
+    if (idx < 0) idx = 0;
+    state.normal.singleIndex = idx;
+
+    const u = PX_PER_MM * cfg.zoom;
+    const barcodeWMM = layout.contentW * cfg.widthPct / 100;
+
+    const wrap = el('div', 'paper-wrap');
+
+    const nav = el('div', 'single-nav');
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.textContent = '‹';
+    prev.title = '上一个（←）';
+    prev.disabled = idx <= 0;
+    prev.addEventListener('click', function () { changeSingleIndex(-1); });
+
+    const counter = el('span', 'counter');
+    counter.textContent = '第 ' + (idx + 1) + ' / ' + total + ' 个';
+
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.textContent = '›';
+    next.title = '下一个（→）';
+    next.disabled = idx >= total - 1;
+    next.addEventListener('click', function () { changeSingleIndex(1); });
+
+    nav.appendChild(prev);
+    nav.appendChild(counter);
+    nav.appendChild(next);
+    wrap.appendChild(nav);
+
+    wrap.appendChild(buildNormalPaper(cfg, layout, [lines[idx]], u, barcodeWMM));
+
+    previewPages.appendChild(wrap);
+  }
+
+  function changeSingleIndex(delta) {
+    if (state.mode !== 'normal' || state.normal.previewMode !== 'single') return;
+    const total = Math.min(getNormalLines().length, MAX_LINES);
+    if (total <= 0) return;
+    let idx = (state.normal.singleIndex || 0) + delta;
+    idx = Math.max(0, Math.min(total - 1, idx));
+    if (idx !== state.normal.singleIndex) {
+      state.normal.singleIndex = idx;
+      renderPreview();
+      scheduleSave();
+    }
+  }
+
+  /* ================= 普通模式预览入口 ================= */
+  function renderNormalPreview() {
+    const cfg = getNormalConfig();
+    const allLines = getNormalLines();
+    if (state.normal.previewMode === 'single') {
+      renderNormalSinglePreview(cfg, allLines);
+    } else {
+      renderNormalListPreview(cfg, allLines);
     }
   }
 
@@ -1114,6 +1741,11 @@
     if (cfg.padTop + cfg.padBottom > PAGE_H - 20) msgs.push('上下边距之和过大，可用高度不足。');
     if (layout.midH < 10) msgs.push('中间区域高度不足，请减小横条码高度或边距。');
     if (layout.contentAreaW < 15) msgs.push('内容区宽度不足，请减小竖条码宽度或左右边距。');
+    if (cfg.showVBarcode) {
+      const maxTop = Math.max(0, layout.midH - 8);
+      if (cfg.vBarTop > maxTop) msgs.push('竖条码上边距超出可用高度，已自动压缩。');
+      if (cfg.vBarH > 0 && cfg.vBarH > layout.midH - layout.vBarTop) msgs.push('竖条码长度超出剩余高度，已自动压缩。');
+    }
     pages.forEach(function (p, i) {
       if (!p.barcode.trim()) msgs.push('第 ' + (i + 1) + ' 页条码内容为空。');
     });
@@ -1156,7 +1788,6 @@
         (cfg.padBottom * u).toFixed(2) + 'px ' +
         (cfg.padLeft * u).toFixed(2) + 'px';
 
-      // 顶部横条码
       const top = el('div', 'express-top-barcode');
       top.style.height = (layout.topH * u).toFixed(2) + 'px';
       const bc = (page.barcode || '').trim();
@@ -1173,7 +1804,6 @@
       }
       body.appendChild(top);
 
-      // 中间区域：内容 + 右侧竖条码
       const main = el('div', 'express-main');
       main.style.marginTop = (cfg.gap * u).toFixed(2) + 'px';
       main.style.height = (layout.midH * u).toFixed(2) + 'px';
@@ -1185,19 +1815,34 @@
       content.textContent = page.content || '';
       main.appendChild(content);
 
-      const vb = el('div', 'express-vbarcode');
-      vb.style.width = (cfg.vBarW * u).toFixed(2) + 'px';
-      vb.style.marginLeft = (cfg.gap * u).toFixed(2) + 'px';
-      const vText = (page.vBarcode || '').trim() || bc;
-      try {
-        if (!vText) throw new Error('内容为空');
-        vb.appendChild(buildVerticalSVG(vText, cfg.vBarW * u, layout.midH * u, ''));
-      } catch (err) {
-        const e = el('div', 'express-err');
-        e.textContent = '竖条码无效：' + err.message;
-        vb.appendChild(e);
+      if (cfg.showVBarcode) {
+        const vb = el('div', 'express-vbarcode');
+        vb.style.width = (layout.vbTotalW * u).toFixed(2) + 'px';
+        vb.style.height = (layout.vBarH * u).toFixed(2) + 'px';
+        vb.style.marginTop = (layout.vBarTop * u).toFixed(2) + 'px';
+        vb.style.marginLeft = (cfg.gap * u).toFixed(2) + 'px';
+        // 优先使用高级选项中的纵向条码内容，留空则与横条码一致
+        const vText = (page.vBarcode || '').trim() || bc;
+        try {
+          if (!vText) throw new Error('内容为空');
+          const vFontMM = cfg.showVText ? pickVerticalFontMM(vText, layout.vBarH, layout.vTextW) : 0;
+          vb.appendChild(buildVerticalSVG(
+            vText,
+            cfg.vBarW * u,
+            layout.vBarH * u,
+            layout.vTextW * u,
+            vFontMM * u,
+            cfg.showVText,
+            ''
+          ));
+        } catch (err) {
+          const e = el('div', 'express-err');
+          e.textContent = '竖条码无效：' + err.message;
+          vb.appendChild(e);
+        }
+        main.appendChild(vb);
       }
-      main.appendChild(vb);
+
       body.appendChild(main);
 
       paper.appendChild(body);
@@ -1218,12 +1863,6 @@
   function scheduleRender() {
     clearTimeout(renderTimer);
     renderTimer = setTimeout(renderPreview, 110);
-  }
-
-  function chunkArray(arr, n) {
-    const out = [];
-    for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
-    return out;
   }
 
   /* ================= 普通模式打印 ================= */
@@ -1296,7 +1935,6 @@
 
       const body = el('div', 'express-body');
 
-      // 顶部横条码
       const top = el('div', 'express-top-barcode');
       top.style.height = layout.topH.toFixed(3) + 'mm';
       const bc = (page.barcode || '').trim();
@@ -1313,7 +1951,6 @@
       }
       body.appendChild(top);
 
-      // 中间区域
       const main = el('div', 'express-main');
       main.style.marginTop = cfg.gap + 'mm';
       main.style.height = layout.midH.toFixed(3) + 'mm';
@@ -1325,21 +1962,34 @@
       content.textContent = page.content || '';
       main.appendChild(content);
 
-      const vb = el('div', 'express-vbarcode');
-      vb.style.width = cfg.vBarW + 'mm';
-      vb.style.marginLeft = cfg.gap + 'mm';
-      const vText = (page.vBarcode || '').trim() || bc;
-      try {
-        if (!vText) throw new Error('内容为空');
-        vb.appendChild(buildVerticalSVG(vText, cfg.vBarW, layout.midH, 'mm'));
-      } catch (err) {
-        const e = el('div', 'print-err');
-        e.textContent = '竖条码无效：' + err.message;
-        vb.appendChild(e);
+      if (cfg.showVBarcode) {
+        const vb = el('div', 'express-vbarcode');
+        vb.style.width = layout.vbTotalW + 'mm';
+        vb.style.height = layout.vBarH.toFixed(3) + 'mm';
+        vb.style.marginTop = layout.vBarTop.toFixed(3) + 'mm';
+        vb.style.marginLeft = cfg.gap + 'mm';
+        const vText = (page.vBarcode || '').trim() || bc;
+        try {
+          if (!vText) throw new Error('内容为空');
+          const vFontMM = cfg.showVText ? pickVerticalFontMM(vText, layout.vBarH, layout.vTextW) : 0;
+          vb.appendChild(buildVerticalSVG(
+            vText,
+            cfg.vBarW,
+            layout.vBarH,
+            layout.vTextW,
+            vFontMM,
+            cfg.showVText,
+            'mm'
+          ));
+        } catch (err) {
+          const e = el('div', 'print-err');
+          e.textContent = '竖条码无效：' + err.message;
+          vb.appendChild(e);
+        }
+        main.appendChild(vb);
       }
-      main.appendChild(vb);
-      body.appendChild(main);
 
+      body.appendChild(main);
       label.appendChild(body);
       pageEl.appendChild(label);
       frag.appendChild(pageEl);
@@ -1367,17 +2017,19 @@
     expressPanel.hidden = !isExpress;
     $('modeNormal').classList.toggle('active', !isExpress);
     $('modeExpress').classList.toggle('active', isExpress);
+    viewSwitch.hidden = isExpress;
   }
 
   function switchMode(mode) {
     if (mode !== 'express' && mode !== 'normal') return;
+    if (state.mode === mode) return;
     syncNormalFromDOM();
     state.mode = mode;
     applyModeUI();
     applyExpressToDOM();
     syncPaddingInputs();
     renderPreview();
-    scheduleSave();
+    doSave();
   }
 
   /* ================= 事件：普通面板 ================= */
@@ -1400,70 +2052,131 @@
     scheduleSave();
   });
 
+  /* ================= 事件：快递单子标签 ================= */
+  expressSubTabs.addEventListener('click', function (e) {
+    const btn = e.target.closest('.sub-tab');
+    if (!btn) return;
+    const sub = btn.dataset.subtab;
+    if (sub !== 'content' && sub !== 'settings') return;
+    if (state.express.subTab === sub) return;
+    state.express.subTab = sub;
+    renderExpressSubTabs();
+    doSave();
+  });
+
   /* ================= 事件：快递单面板 ================= */
   expressPanel.addEventListener('input', function (e) {
     const t = e.target;
-    if (t.dataset.field) {
-      // 页卡片内容
-      const card = t.closest('.express-page-card');
-      if (!card) return;
-      const idx = parseInt(card.dataset.index, 10);
-      if (!isNaN(idx) && state.express.pages[idx]) {
-        state.express.pages[idx][t.dataset.field] = t.value;
-        scheduleRender();
-        scheduleSave();
-      }
+
+    // 页编辑区 / 高级选项中的内容字段
+    if (t.dataset && t.dataset.field) {
+      const page = state.express.pages[state.express.currentPage];
+      if (!page) return;
+      page[t.dataset.field] = t.value;
+      scheduleRender();
+      scheduleSave();
       return;
     }
+
+    // 设置项
     if (t.id === 'exBarH') state.express.barH = t.value;
     else if (t.id === 'exWidthPct') state.express.widthPct = t.value;
     else if (t.id === 'exVBarW') state.express.vBarW = t.value;
+    else if (t.id === 'exVBarTop') state.express.vBarTop = t.value;
+    else if (t.id === 'exVBarH') state.express.vBarH = t.value;
     else if (t.id === 'exShowText') state.express.showText = t.checked;
+    else if (t.id === 'exShowVBarcode') {
+      state.express.showVBarcode = t.checked;
+      syncVTextAvailability();
+    }
+    else if (t.id === 'exShowVText') state.express.showVText = t.checked;
     else if (t.id === 'exPadTop') state.normal.padTop = t.value;
     else if (t.id === 'exPadBottom') state.normal.padBottom = t.value;
     else if (t.id === 'exPadLeft') state.normal.padLeft = t.value;
     else if (t.id === 'exPadRight') state.normal.padRight = t.value;
     else if (t.id === 'exGap') state.normal.gap = t.value;
 
-    if (t.id && t.id.indexOf('exPad') === 0 || t.id === 'exGap') {
+    if ((t.id && t.id.indexOf('exPad') === 0) || t.id === 'exGap') {
       syncPaddingInputs();
     }
+
     scheduleRender();
     scheduleSave();
   });
   expressPanel.addEventListener('change', function (e) {
     const t = e.target;
     if (t.id === 'exShowText') state.express.showText = t.checked;
+    else if (t.id === 'exShowVBarcode') {
+      state.express.showVBarcode = t.checked;
+      syncVTextAvailability();
+    }
+    else if (t.id === 'exShowVText') state.express.showVText = t.checked;
     scheduleRender();
     scheduleSave();
   });
 
-  // 页卡片删除（点击）
-  expressPagesList.addEventListener('click', function (e) {
+  /* --- 页标签栏：切换 / 添加 --- */
+  pageTabs.addEventListener('click', function (e) {
+    const addBtn = e.target.closest('button[data-action="add"]');
+    if (addBtn) {
+      state.express.pages.push({ barcode: '', vBarcode: '', content: '' });
+      state.express.currentPage = state.express.pages.length - 1;
+      renderExpressPageEditor();
+      renderPreview();
+      scheduleSave();
+      setTimeout(function () {
+        const inp = pageEditor.querySelector('input[data-field="barcode"]');
+        if (inp) inp.focus();
+      }, 30);
+      return;
+    }
+    const tab = e.target.closest('.page-tab');
+    if (!tab) return;
+    const idx = parseInt(tab.dataset.index, 10);
+    if (isNaN(idx) || idx === state.express.currentPage) return;
+    state.express.currentPage = idx;
+    renderExpressPageEditor();
+    doSave();
+  });
+
+  /* --- 编辑区删除按钮 --- */
+  pageEditor.addEventListener('click', function (e) {
     const btn = e.target.closest('button[data-action="del"]');
     if (!btn) return;
-    const card = btn.closest('.express-page-card');
-    if (!card) return;
-    const idx = parseInt(card.dataset.index, 10);
-    if (isNaN(idx) || state.express.pages.length <= 1) return;
-    state.express.pages.splice(idx, 1);
-    renderExpressPageCards();
+    if (state.express.pages.length <= 1) return;
+    const cur = state.express.currentPage;
+    state.express.pages.splice(cur, 1);
+    if (state.express.currentPage >= state.express.pages.length) {
+      state.express.currentPage = state.express.pages.length - 1;
+    }
+    renderExpressPageEditor();
     renderPreview();
     scheduleSave();
   });
 
-  // 添加页
-  $('addPage').addEventListener('click', function () {
-    state.express.pages.push({ barcode: '', vBarcode: '', content: '' });
-    renderExpressPageCards();
+  /* ================= 视图切换 ================= */
+  viewSwitch.addEventListener('click', function (e) {
+    const btn = e.target.closest('.view-btn');
+    if (!btn) return;
+    const view = btn.dataset.view;
+    if (view !== 'list' && view !== 'single') return;
+    if (state.normal.previewMode === view) return;
+    state.normal.previewMode = view;
+    updateViewSwitchUI();
     renderPreview();
-    scheduleSave();
-    // 滚动到底部新卡片
-    const cards = expressPagesList.querySelectorAll('.express-page-card');
-    if (cards.length) {
-      cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      const inp = cards[cards.length - 1].querySelector('input[data-field="barcode"]');
-      if (inp) inp.focus();
+    doSave();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (state.mode !== 'normal' || state.normal.previewMode !== 'single') return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      changeSingleIndex(-1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      changeSingleIndex(1);
     }
   });
 
@@ -1478,12 +2191,14 @@
   /* ================= 按钮 ================= */
   $('printAll').addEventListener('click', printAll);
   $('exPrintAll').addEventListener('click', printAll);
+  downloadZipBtn.addEventListener('click', downloadAllBarcodes);
 
   $('reset').addEventListener('click', function () {
     state.normal = clone(DEFAULT_NORMAL);
     applyNormalToDOM();
     applyExpressToDOM();
     syncPaddingInputs();
+    updateViewSwitchUI();
     renderPreview();
     scheduleSave();
   });
@@ -1491,7 +2206,6 @@
   $('exReset').addEventListener('click', function () {
     state.express = clone(DEFAULT_EXPRESS);
     applyExpressToDOM();
-    renderExpressPageCards();
     renderPreview();
     scheduleSave();
   });
@@ -1499,7 +2213,6 @@
   $('modeNormal').addEventListener('click', function () { switchMode('normal'); });
   $('modeExpress').addEventListener('click', function () { switchMode('express'); });
 
-  // Ctrl / Cmd + Enter 打印当前模式
   inputEl.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -1507,7 +2220,6 @@
     }
   });
 
-  // 离开前保存
   window.addEventListener('beforeunload', function () {
     clearTimeout(saveTimer);
     syncNormalFromDOM();
@@ -1536,8 +2248,10 @@
   fixedHEl.disabled = (heightModeEl.value !== 'fixed');
   zoomValEl.textContent = Math.round(parseFloat(zoomEl.value || 1.5) * 100) + '%';
 
+  updateViewSwitchUI();
   applyModeUI();
-  renderExpressPageCards();
+  renderExpressSubTabs();
+  renderExpressPageEditor();
   renderPreview();
 
   if (restored) {
