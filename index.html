@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>集包码面单批量生成 · 快递单模式</title>
+<title>快递条码批量生成器</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -18,7 +19,7 @@
   h1{font-size:21px;margin:0 0 4px}
   .sub{margin:0;color:#6b7280;font-size:13px;line-height:1.6}
 
-  .mode-switch{display:inline-flex;background:#e9eef7;border-radius:10px;padding:3px;gap:3px;flex:0 0 auto}
+  .mode-switch{display:inline-flex;background:#e9eef7;border-radius:10px;padding:3px;gap:3px;flex:0 0 auto;flex-wrap:wrap}
   .mode-btn{
     font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;border:none;
     background:transparent;color:#5b6472;cursor:pointer;transition:.15s;font-family:inherit;
@@ -27,7 +28,6 @@
 
   .workspace{display:flex;gap:18px;align-items:flex-start}
 
-  /* ============ 左侧设置 ============ */
   .settings{
     flex:0 0 390px;
     background:#fff;border:1px solid #e3e8f0;border-radius:14px;
@@ -38,7 +38,6 @@
   .panel{display:flex;flex-direction:column;gap:14px}
   .panel[hidden]{display:none!important}
 
-  /* 快递单内部子标签 */
   .sub-tabs{display:inline-flex;background:#eef1f7;border-radius:9px;padding:3px;gap:3px;align-self:flex-start}
   .sub-tab{
     font-size:13px;font-weight:600;padding:7px 18px;border-radius:7px;border:none;
@@ -69,7 +68,6 @@
   input[type=number]:disabled{background:#f1f3f7;color:#9aa3b2;cursor:not-allowed}
   .checkbox{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#374151;cursor:pointer;user-select:none}
   .checkbox input{width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex:0 0 auto}
-
   .hint{font-size:11px;color:#9aa3b2;line-height:1.5;font-weight:400}
 
   .warn{
@@ -90,57 +88,30 @@
   button.download:hover{background:#4338ca}
   button.ghost{background:#fff;border-color:#d7dee9;color:#374151}
   button.ghost:hover{background:#f3f6fb}
+  button.danger{background:#fff;border-color:#fecaca;color:#b91c1c}
+  button.danger:hover{background:#fef2f2}
   button:disabled{opacity:.6;cursor:not-allowed}
 
-  /* 面单页标签栏 */
-  .page-tabs{
-    display:flex;
-    gap:6px;
-    overflow-x:auto;
-    padding-bottom:4px;
-    scrollbar-width:thin;
-  }
+  .page-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
   .page-tabs::-webkit-scrollbar{height:6px}
   .page-tabs::-webkit-scrollbar-thumb{background:#cfd8e6;border-radius:3px}
   .page-tab{
-    flex:0 0 auto;
-    padding:6px 12px;
-    font-size:12px;
-    font-weight:600;
-    border-radius:7px;
-    border:1px solid #dfe5f0;
-    background:#fbfcff;
-    color:#5b6472;
-    cursor:pointer;
-    font-family:inherit;
-    transition:.15s;
-    white-space:nowrap;
+    flex:0 0 auto;padding:6px 12px;font-size:12px;font-weight:600;border-radius:7px;
+    border:1px solid #dfe5f0;background:#fbfcff;color:#5b6472;cursor:pointer;
+    font-family:inherit;transition:.15s;white-space:nowrap;
   }
   .page-tab:hover{background:#eef2ff;border-color:#b9c6e8;color:#1d4ed8}
   .page-tab.active{background:#4338ca;border-color:#4338ca;color:#fff}
   .page-tab-add{
-    flex:0 0 auto;
-    padding:6px 12px;
-    font-size:13px;
-    font-weight:700;
-    border-radius:7px;
-    border:1px dashed #b9c6e8;
-    background:#eef2ff;
-    color:#1d4ed8;
-    cursor:pointer;
-    font-family:inherit;
-    transition:.15s;
+    flex:0 0 auto;padding:6px 12px;font-size:13px;font-weight:700;border-radius:7px;
+    border:1px dashed #b9c6e8;background:#eef2ff;color:#1d4ed8;cursor:pointer;
+    font-family:inherit;transition:.15s;
   }
   .page-tab-add:hover{background:#e0e7ff}
 
   .page-editor{
-    border:1px solid #dfe5f0;
-    border-radius:10px;
-    padding:12px;
-    background:#fbfcff;
-    display:flex;
-    flex-direction:column;
-    gap:9px;
+    border:1px solid #dfe5f0;border-radius:10px;padding:12px;background:#fbfcff;
+    display:flex;flex-direction:column;gap:9px;
   }
   .page-editor-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .epc-title{font-size:12px;font-weight:800;color:#4338ca}
@@ -151,27 +122,90 @@
   .epc-del:hover{background:#fef2f2}
   .epc-del:disabled{opacity:.4;cursor:not-allowed;background:#f8fafc;color:#9aa3b2;border-color:#e2e8f0}
 
-  /* 高级选项折叠框 */
-  .adv-box{
-    border:1px dashed #dbe3ef;border-radius:9px;padding:9px 11px;background:#f8fafc;
-  }
-  .adv-box summary{
-    cursor:pointer;font-size:12px;font-weight:700;color:#4b5563;
-    list-style:none;outline:none;user-select:none;
-  }
+  .adv-box{border:1px dashed #dbe3ef;border-radius:9px;padding:9px 11px;background:#f8fafc}
+  .adv-box summary{cursor:pointer;font-size:12px;font-weight:700;color:#4b5563;list-style:none;outline:none;user-select:none}
   .adv-box summary::-webkit-details-marker{display:none}
   .adv-box summary::before{content:'▸ ';color:#8a93a3}
   .adv-box[open] summary::before{content:'▾ '}
   .adv-body{margin-top:10px;display:flex;flex-direction:column;gap:9px}
 
-  .save-note{
-    display:flex;align-items:center;gap:6px;
-    font-size:11px;color:#8a93a3;line-height:1.5;
+  .ce-add-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+  .ce-add-btn{
+    padding:10px 4px;font-size:12px;font-weight:700;border-radius:9px;
+    border:1px dashed #b9c6e8;background:#eef2ff;color:#1d4ed8;
+    cursor:pointer;font-family:inherit;transition:.15s;
   }
+  .ce-add-btn:hover{background:#e0e7ff;border-color:#8ea8e0}
+
+  .ce-el-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+  .ce-el-item{
+    display:flex;align-items:center;gap:9px;padding:7px 9px;
+    border:1px solid #e3e8f0;border-radius:8px;background:#fff;cursor:pointer;
+    transition:.12s;text-align:left;font-family:inherit;
+  }
+  .ce-el-item:hover{background:#f3f6fb;border-color:#c7d2fe}
+  .ce-el-item.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+  .ce-el-icon{
+    flex:0 0 auto;width:24px;height:24px;border-radius:5px;
+    background:#eef2ff;color:#4338ca;font-size:10px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ce-el-item.active .ce-el-icon{background:#4338ca;color:#fff}
+  .ce-el-info{flex:1;min-width:0}
+  .ce-el-name{font-size:12px;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ce-el-summary{font-size:11px;color:#8a93a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .ce-el-empty{font-size:12px;color:#9aa3b2;padding:12px 6px;text-align:center;line-height:1.6}
+
+  .ce-prop-row{display:flex;gap:8px;flex-wrap:wrap}
+  .ce-prop-btn{
+    flex:1 1 auto;padding:7px 10px;font-size:12px;font-weight:600;border-radius:7px;
+    border:1px solid #d7dee9;background:#fff;color:#374151;cursor:pointer;font-family:inherit;
+  }
+  .ce-prop-btn:hover{background:#f3f6fb}
+  .ce-prop-btn.danger{border-color:#fecaca;color:#b91c1c}
+  .ce-prop-btn.danger:hover{background:#fef2f2}
+
+  .type-badge{
+    display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:800;
+    background:#eef2ff;color:#4338ca;
+  }
+
+  /* 历史记录列表 */
+  .history-list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 320px);overflow-y:auto}
+  .history-item{
+    display:flex;gap:10px;padding:9px;border:1px solid #e3e8f0;border-radius:10px;
+    background:#fff;cursor:pointer;transition:.15s;text-align:left;font-family:inherit;
+    align-items:center;
+  }
+  .history-item:hover{background:#f3f6fb;border-color:#c7d2fe}
+  .history-item.active{background:#eef2ff;border-color:#818cf8;box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+  .history-thumb{
+    flex:0 0 auto;width:54px;height:92px;object-fit:cover;
+    border-radius:5px;background:#f8fafc;border:1px solid #e3e8f0;
+  }
+  .history-info{flex:1;min-width:0}
+  .history-title{font-size:12px;font-weight:800;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history-time{font-size:11px;color:#8a93a3;margin-top:2px;font-variant-numeric:tabular-nums}
+  .history-summary{font-size:11px;color:#6b7280;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .history-badge{
+    display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:800;
+    background:#eef2ff;color:#4338ca;margin-right:4px;
+  }
+  .history-empty{font-size:12px;color:#9aa3b2;text-align:center;padding:24px 12px;line-height:1.7}
+  .history-ops{display:flex;gap:6px;margin-top:6px}
+  .history-ops button{
+    flex:1;padding:5px 8px;font-size:11px;border-radius:6px;
+    border:1px solid #d7dee9;background:#fff;color:#374151;cursor:pointer;font-family:inherit;
+  }
+  .history-ops button:hover{background:#f3f6fb}
+  .history-ops button.danger{border-color:#fecaca;color:#b91c1c}
+  .history-ops button.danger:hover{background:#fef2f2}
+
+  .save-note{display:flex;align-items:center;gap:6px;font-size:11px;color:#8a93a3;line-height:1.5}
   .save-dot{width:6px;height:6px;border-radius:50%;background:#10b981;flex:0 0 auto}
   .save-dot.pending{background:#f59e0b}
 
-  /* ============ 右侧预览 ============ */
+  /* 右侧预览区 */
   .preview-pane{
     flex:1 1 auto;min-width:0;background:#fff;border:1px solid #e3e8f0;
     border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);
@@ -214,10 +248,7 @@
     background:repeating-linear-gradient(45deg,#f6f8ff,#f6f8ff 6px,#edf1ff 6px,#edf1ff 12px);
     border-bottom:1px dashed #c7d2fe;pointer-events:none;
   }
-  .paper-body{
-    display:flex;flex-direction:column;height:100%;
-    justify-content:flex-start;
-  }
+  .paper-body{display:flex;flex-direction:column;height:100%;justify-content:flex-start}
   .paper-item{
     position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
     overflow:hidden;
@@ -253,21 +284,62 @@
     min-width:96px;text-align:center;font-weight:600;
   }
 
-  /* 快递单预览结构 */
   .express-body{display:flex;flex-direction:column;height:100%}
   .express-top-barcode{display:flex;justify-content:center;align-items:center;flex:0 0 auto;overflow:hidden}
   .express-top-barcode svg{display:block}
   .express-main{display:flex;flex:1;min-height:0}
   .express-content{
     flex:1;min-width:0;white-space:pre-wrap;word-break:break-all;overflow:hidden;
-    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    color:#111827;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#111827;
   }
   .express-vbarcode{flex:0 0 auto;display:flex;align-items:flex-start;overflow:hidden;align-self:flex-start}
   .express-vbarcode svg{display:block}
   .express-err{font-size:11px;color:#b91c1c;padding:4px;text-align:center;width:100%}
 
-  /* ============ 打印输出 ============ */
+  .ce-canvas{position:absolute;overflow:visible}
+  .ce-canvas::after{
+    content:'';position:absolute;inset:0;border:1px dashed rgba(37,99,235,.18);
+    pointer-events:none;
+  }
+  .ce{
+    position:absolute;box-sizing:border-box;transform-origin:center center;
+    cursor:move;user-select:none;touch-action:none;
+  }
+  .ce.selected{outline:1.5px dashed #2563eb;outline-offset:1px}
+  .ce-content{width:100%;height:100%;pointer-events:none;overflow:hidden}
+  .ce-handle{
+    position:absolute;width:10px;height:10px;background:#fff;
+    border:1.5px solid #2563eb;border-radius:2px;box-sizing:border-box;
+    transform:translate(-50%,-50%);z-index:10;
+  }
+  .h-nw{left:0;top:0;cursor:nwse-resize}
+  .h-n{left:50%;top:0;cursor:ns-resize}
+  .h-ne{left:100%;top:0;cursor:nesw-resize}
+  .h-e{left:100%;top:50%;cursor:ew-resize}
+  .h-se{left:100%;top:100%;cursor:nwse-resize}
+  .h-s{left:50%;top:100%;cursor:ns-resize}
+  .h-sw{left:0;top:100%;cursor:nesw-resize}
+  .h-w{left:0;top:50%;cursor:ew-resize}
+  .ce-rot{
+    position:absolute;left:50%;top:-24px;width:13px;height:13px;
+    margin-left:-6.5px;border-radius:50%;background:#2563eb;
+    border:2px solid #fff;box-sizing:border-box;cursor:grab;z-index:11;
+  }
+  .ce-rot:active{cursor:grabbing}
+  .ce-empty-hint{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:#b6c0d0;pointer-events:none;text-align:center;padding:12px;
+  }
+
+  #appToast{
+    position:fixed;left:50%;bottom:36px;transform:translate(-50%,20px);
+    max-width:min(560px,calc(100vw - 40px));
+    background:rgba(17,24,39,.94);color:#fff;font-size:13px;line-height:1.6;
+    padding:12px 18px;border-radius:10px;box-shadow:0 8px 30px rgba(15,23,42,.3);
+    opacity:0;pointer-events:none;transition:.22s;z-index:9999;
+  }
+  #appToast.show{opacity:1;transform:translate(-50%,0)}
+
   .print-root{display:none}
 
   @media print{
@@ -279,31 +351,30 @@
     }
     .app{display:none!important}
     .print-root{display:block!important}
-
     .label-page{
-      width:76mm;height:129.8mm;
-      overflow:hidden;
+      width:76mm;height:129.8mm;overflow:hidden;
       page-break-after:always;break-after:page;
       page-break-inside:avoid;break-inside:avoid;
     }
     .label-page:last-child{page-break-after:auto;break-after:auto}
     .label-body{
       height:129.8mm;box-sizing:border-box;
-      display:flex;flex-direction:column;justify-content:flex-start;
-      overflow:hidden;
+      display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;
     }
     .label-item{
       flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;
     }
     .label-item svg{display:block}
     .print-err{color:#b91c1c;font-size:8pt;padding:1mm;text-align:center}
-
     .express-label{
       height:129.8mm;box-sizing:border-box;overflow:hidden;
       display:flex;flex-direction:column;
     }
     .express-label .express-body{height:100%}
     .express-label .express-content{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    .print-canvas{position:relative;overflow:hidden;flex:0 0 auto}
+    .print-canvas .ce{cursor:default}
+    .print-canvas .ce.selected{outline:none}
   }
 
   @media (max-width:1000px){
@@ -318,19 +389,20 @@
 <div class="app">
   <header>
     <div>
-      <h1>集包码面单批量生成</h1>
-      <p class="sub">普通模式：一页多个条码 / 单条翻阅 · 快递单模式：内容与设置分开编辑 · 所有设置自动保存在本地</p>
+      <h1>条码面单批量生成</h1>
+      <p class="sub">普通模式 / 快递单模式 / 自定义模式 / 历史记录 · 所有内容与设置均自动保存在本地</p>
     </div>
     <div class="mode-switch">
       <button id="modeNormal" class="mode-btn active" type="button">普通模式</button>
       <button id="modeExpress" class="mode-btn" type="button">快递单模式</button>
+      <button id="modeCustom" class="mode-btn" type="button">自定义模式</button>
+      <button id="modeHistory" class="mode-btn" type="button">历史记录</button>
     </div>
   </header>
 
   <div class="workspace">
-    <!-- ========== 左：设置 ========== -->
     <aside class="settings" id="settings">
-      <!-- 普通模式面板 -->
+      <!-- 普通模式 -->
       <div class="panel" id="normalPanel">
         <div class="group">
           <label class="field">
@@ -338,7 +410,6 @@
             <textarea id="input" rows="7" spellcheck="false" placeholder="每行一个条码内容，例如：&#10;JB202410310001&#10;JB202410310002"></textarea>
           </label>
         </div>
-
         <div class="group">
           <div class="group-title">条码布局</div>
           <div class="grid2">
@@ -374,9 +445,8 @@
             <span>条码下方显示文本</span>
           </label>
         </div>
-
         <div class="group">
-          <div class="group-title">面单留白与间距（毫米，与快递单共用）</div>
+          <div class="group-title">面单留白与间距（毫米，三种模式共用）</div>
           <div class="grid2">
             <label class="field">
               <span class="lbl">上边距（图标区）</span>
@@ -400,9 +470,7 @@
             </label>
           </div>
         </div>
-
         <div id="warn" class="warn" hidden></div>
-
         <div class="actions">
           <button id="printAll" class="accent" type="button">一键打印面单</button>
           <button id="downloadZip" class="download" type="button">一键下载条码 ZIP</button>
@@ -410,15 +478,12 @@
         </div>
       </div>
 
-      <!-- 快递单模式面板 -->
+      <!-- 快递单模式 -->
       <div class="panel" id="expressPanel" hidden>
-        <!-- 子标签：内容 / 设置 -->
         <div class="sub-tabs" id="expressSubTabs">
           <button type="button" class="sub-tab active" data-subtab="content">内容</button>
           <button type="button" class="sub-tab" data-subtab="settings">设置</button>
         </div>
-
-        <!-- 子面板：内容 -->
         <div class="sub-panel" id="expressContentPanel">
           <div class="group">
             <div class="group-title">面单页（点击标签切换编辑）</div>
@@ -430,8 +495,6 @@
             </details>
           </div>
         </div>
-
-        <!-- 子面板：设置 -->
         <div class="sub-panel" id="expressSettingsPanel" hidden>
           <div class="group">
             <div class="group-title">快递单条码布局</div>
@@ -474,9 +537,8 @@
               <input type="number" id="exVBarH" value="0" min="0" max="120" step="0.5">
             </label>
           </div>
-
           <div class="group">
-            <div class="group-title">面单留白与间距（毫米，与普通模式共用）</div>
+            <div class="group-title">面单留白与间距（毫米，与其它模式共用）</div>
             <div class="grid2">
               <label class="field">
                 <span class="lbl">上边距（图标区）</span>
@@ -501,23 +563,91 @@
             </div>
           </div>
         </div>
-
         <div id="warnExpress" class="warn" hidden></div>
-
         <div class="actions">
           <button id="exPrintAll" class="accent" type="button">一键打印快递单</button>
           <button id="exReset" class="ghost" type="button">恢复默认</button>
         </div>
       </div>
 
-      <!-- 公共保存提示 -->
+      <!-- 自定义模式 -->
+      <div class="panel" id="customPanel" hidden>
+        <div class="group">
+          <div class="group-title">面单页（点击标签切换）</div>
+          <div class="page-tabs" id="customPageTabs"></div>
+        </div>
+        <div class="group">
+          <div class="page-editor">
+            <div class="page-editor-head">
+              <span class="epc-title" id="customPageTitle">第 1 页元素</span>
+              <button type="button" class="epc-del" id="customDelPage">删除本页</button>
+            </div>
+            <div class="ce-el-list" id="customElList"></div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-title">添加元素到当前页</div>
+          <div class="ce-add-row">
+            <button type="button" class="ce-add-btn" data-add="barcode">条码</button>
+            <button type="button" class="ce-add-btn" data-add="text">文本</button>
+            <button type="button" class="ce-add-btn" data-add="qrcode">二维码</button>
+            <button type="button" class="ce-add-btn" data-add="image">图片</button>
+          </div>
+          <input type="file" id="customImgInput" accept="image/*" hidden>
+          <span class="hint">点击右侧预览中的元素即可选中。拖四角同时改宽高（对角固定），拖四边只改一个方向（对边固定），顶部圆点旋转；接近水平或垂直时会自动吸附。</span>
+        </div>
+        <div class="group">
+          <div class="group-title">元素属性</div>
+          <div id="customProps"></div>
+        </div>
+        <details class="adv-box">
+          <summary>页面边距（与其它模式共用）</summary>
+          <div class="adv-body">
+            <div class="grid2">
+              <label class="field">
+                <span class="lbl">上边距（图标区）</span>
+                <input type="number" id="cuPadTop" value="10" min="0" max="80" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">下边距</span>
+                <input type="number" id="cuPadBottom" value="3" min="0" max="80" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">左边距</span>
+                <input type="number" id="cuPadLeft" value="2" min="0" max="40" step="0.5">
+              </label>
+              <label class="field">
+                <span class="lbl">右边距</span>
+                <input type="number" id="cuPadRight" value="2" min="0" max="40" step="0.5">
+              </label>
+            </div>
+            <span class="hint">画布即边距以内的区域，元素坐标以此为原点。</span>
+          </div>
+        </details>
+        <div id="warnCustom" class="warn" hidden></div>
+        <div class="actions">
+          <button id="customPrintAll" class="accent" type="button">一键打印自定义面单</button>
+          <button id="customReset" class="ghost" type="button">恢复默认</button>
+        </div>
+      </div>
+
+      <!-- 历史记录 -->
+      <div class="panel" id="historyPanel" hidden>
+        <div class="group">
+          <div class="group-title">近期打印记录（最多 50 条，点击查看）</div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+        <div class="actions">
+          <button id="clearHistoryBtn" class="danger" type="button">清空全部记录</button>
+        </div>
+      </div>
+
       <div class="save-note">
         <span class="save-dot" id="saveDot"></span>
         <span id="saveText">内容与设置已自动保存在本地浏览器</span>
       </div>
     </aside>
 
-    <!-- ========== 右：打印预览 ========== -->
     <main class="preview-pane">
       <div class="preview-bar">
         <span id="previewTitle">打印预览 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）</span>
@@ -540,14 +670,13 @@
   </div>
 </div>
 
-<!-- 打印专用输出容器 -->
 <div class="print-root" id="printRoot"></div>
 
 <script>
 (function () {
   'use strict';
 
-  /* ================= Code128 编码表 ================= */
+  /* ================= Code128 ================= */
   const CODE128 = [
     "212222","222122","222221","121223","121322","131222","122213","122312","132212","221213",
     "221312","231212","112232","122132","122231","113222","123122","123221","223211","221132",
@@ -573,13 +702,22 @@
   const PREVIEW_MAX_PAGES = 20;
   const STORAGE_KEY_V2 = 'barcode_label_settings_v2';
   const STORAGE_KEY_V1 = 'barcode_label_settings_v1';
+  const STORAGE_KEY_HISTORY = 'barcode_label_history_v1';
   const ZIP_DPI = 16;
   const ZIP_DEFAULT_BAR_H = 18;
+  const MAX_HISTORY = 50;
+  const MAX_ENTRY_SIZE = 2.8 * 1024 * 1024; // 单条记录上限约 2.8MB
+
+  const SNAP_ANGLE = 5;
+  const SNAP_POS = 1.2;
+  const MIN_SIZE = 3;
 
   /* ================= DOM ================= */
   const $ = id => document.getElementById(id);
   const normalPanel  = $('normalPanel');
   const expressPanel = $('expressPanel');
+  const customPanel  = $('customPanel');
+  const historyPanel = $('historyPanel');
   const expressSubTabs = $('expressSubTabs');
   const expressContentPanel = $('expressContentPanel');
   const expressSettingsPanel = $('expressSettingsPanel');
@@ -597,6 +735,7 @@
   const gapEl        = $('gap');
   const warnEl       = $('warn');
   const warnExpress  = $('warnExpress');
+  const warnCustom   = $('warnCustom');
 
   const exBarHEl         = $('exBarH');
   const exWidthPctEl     = $('exWidthPct');
@@ -615,6 +754,20 @@
   const pageEditor       = $('pageEditor');
   const advBody          = $('advBody');
 
+  const customPageTabs   = $('customPageTabs');
+  const customPageTitle  = $('customPageTitle');
+  const customDelPage    = $('customDelPage');
+  const customElList     = $('customElList');
+  const customProps      = $('customProps');
+  const customImgInput   = $('customImgInput');
+  const cuPadTopEl       = $('cuPadTop');
+  const cuPadBottomEl    = $('cuPadBottom');
+  const cuPadLeftEl      = $('cuPadLeft');
+  const cuPadRightEl     = $('cuPadRight');
+
+  const historyList      = $('historyList');
+  const clearHistoryBtn  = $('clearHistoryBtn');
+
   const viewSwitch   = $('viewSwitch');
   const zoomEl       = $('zoom');
   const zoomValEl    = $('zoomVal');
@@ -627,7 +780,7 @@
 
   /* ================= 默认状态 ================= */
   const DEFAULT_NORMAL = {
-    input: ['JB202410310001','JB202410310002','JB202410310003','JB202410310004','JB202410310005','JB202410310006'].join('\n'),
+    input: ['202410310001','202410310002','202410310003','202410310004','202410310005','202410310006'].join('\n'),
     perPage: '6',
     widthPct: '100',
     heightMode: 'auto',
@@ -660,12 +813,18 @@
       content: '姓名：张三\n电话：13800138000\n地址：广东省深圳市南山区科技园某某大厦 A 座 1001 室'
     }]
   };
+  const DEFAULT_CUSTOM = {
+    currentPage: 0,
+    selectedId: null,
+    pages: [{ elements: [] }]
+  };
 
-  /* ================= 状态 ================= */
   let state = {
     mode: 'normal',
     normal: JSON.parse(JSON.stringify(DEFAULT_NORMAL)),
-    express: JSON.parse(JSON.stringify(DEFAULT_EXPRESS))
+    express: JSON.parse(JSON.stringify(DEFAULT_EXPRESS)),
+    custom: JSON.parse(JSON.stringify(DEFAULT_CUSTOM)),
+    history: { selectedId: null }
   };
   let storageOK = true;
   let saveTimer = null;
@@ -686,6 +845,28 @@
     const out = [];
     for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
     return out;
+  }
+  function uid() {
+    return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function formatTime(ts) {
+    const d = new Date(ts);
+    const p2 = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' +
+           p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+  }
+  let toastTimer = null;
+  function showToast(msg, ms) {
+    let t = document.getElementById('appToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'appToast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 4000);
   }
 
   /* ================= 状态采集与同步 ================= */
@@ -752,12 +933,15 @@
     padLeftEl.value = n.padLeft;
     padRightEl.value = n.padRight;
     gapEl.value = n.gap;
-
     exPadTopEl.value = n.padTop;
     exPadBottomEl.value = n.padBottom;
     exPadLeftEl.value = n.padLeft;
     exPadRightEl.value = n.padRight;
     exGapEl.value = n.gap;
+    cuPadTopEl.value = n.padTop;
+    cuPadBottomEl.value = n.padBottom;
+    cuPadLeftEl.value = n.padLeft;
+    cuPadRightEl.value = n.padRight;
   }
 
   function updateViewSwitchUI() {
@@ -770,10 +954,11 @@
   /* ================= 持久化 ================= */
   function collectState() {
     return {
-      v: 2,
+      v: 4,
       mode: state.mode,
       normal: state.normal,
-      express: state.express
+      express: state.express,
+      custom: state.custom
     };
   }
 
@@ -786,7 +971,7 @@
     } catch (e) {
       storageOK = false;
       saveDot.classList.add('pending');
-      saveText.textContent = '本地存储不可用，本次修改不会被记住';
+      saveText.textContent = '本地存储已满或不可用，本次修改不会被记住（图片过多时请减少）';
     }
   }
 
@@ -795,13 +980,33 @@
     saveDot.classList.add('pending');
     saveText.textContent = '正在保存…';
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(doSave, 350);
+    saveTimer = setTimeout(doSave, 400);
+  }
+
+  function normalizeElement(e) {
+    if (!e || typeof e !== 'object') return null;
+    const type = (e.type === 'barcode' || e.type === 'text' || e.type === 'qrcode' || e.type === 'image')
+      ? e.type : 'text';
+    return {
+      id: e.id ? String(e.id) : uid(),
+      type: type,
+      x: clampNum(e.x, -200, 400, 5),
+      y: clampNum(e.y, -200, 400, 5),
+      w: clampNum(e.w, MIN_SIZE, 400, 40),
+      h: clampNum(e.h, MIN_SIZE, 400, 20),
+      rot: clampNum(e.rot, -7200, 7200, 0),
+      value: e.value != null ? String(e.value) : '',
+      fontSize: clampNum(e.fontSize, 0.8, 60, 3.5),
+      showText: e.showText !== false,
+      src: typeof e.src === 'string' ? e.src : ''
+    };
   }
 
   function normalizeState(s) {
     if (!s || typeof s !== 'object') return false;
     const n = Object.assign({}, DEFAULT_NORMAL, s.normal || {});
     const x = Object.assign({}, DEFAULT_EXPRESS, s.express || {});
+    const c = Object.assign({}, DEFAULT_CUSTOM, s.custom || {});
 
     x.showText = x.showText !== false;
     x.showVBarcode = x.showVBarcode !== false;
@@ -823,13 +1028,25 @@
         };
       });
     }
-
     if (x.currentPage == null || x.currentPage === '') x.currentPage = 0;
     x.currentPage = Math.max(0, Math.min(x.pages.length - 1, parseInt(x.currentPage, 10) || 0));
 
-    state.mode = s.mode === 'express' ? 'express' : 'normal';
+    if (!Array.isArray(c.pages) || !c.pages.length) {
+      c.pages = clone(DEFAULT_CUSTOM.pages);
+    } else {
+      c.pages = c.pages.map(function (p) {
+        const els = (p && Array.isArray(p.elements)) ? p.elements.map(normalizeElement).filter(Boolean) : [];
+        return { elements: els };
+      });
+    }
+    if (c.currentPage == null || c.currentPage === '') c.currentPage = 0;
+    c.currentPage = Math.max(0, Math.min(c.pages.length - 1, parseInt(c.currentPage, 10) || 0));
+    c.selectedId = (typeof c.selectedId === 'string') ? c.selectedId : null;
+
+    state.mode = (s.mode === 'express' || s.mode === 'custom' || s.mode === 'history') ? s.mode : 'normal';
     state.normal = n;
     state.express = x;
+    state.custom = c;
     return true;
   }
 
@@ -845,9 +1062,8 @@
     }
 
     if (raw) {
-      try {
-        return normalizeState(JSON.parse(raw));
-      } catch (e) { /* 继续尝试旧版本 */ }
+      try { return normalizeState(JSON.parse(raw)); }
+      catch (e) { /* 继续 */ }
     }
 
     try {
@@ -876,7 +1092,7 @@
     return false;
   }
 
-  /* ================= Code128 值序列 ================= */
+  /* ================= Code128 编码 ================= */
   function code128Values(text) {
     if (!text.length) throw new Error('内容为空');
     for (const ch of text) {
@@ -886,9 +1102,7 @@
     const values = [];
     if (/^\d+$/.test(text) && text.length % 2 === 0) {
       values.push(START_C);
-      for (let i = 0; i < text.length; i += 2) {
-        values.push(parseInt(text.slice(i, i + 2), 10));
-      }
+      for (let i = 0; i < text.length; i += 2) values.push(parseInt(text.slice(i, i + 2), 10));
     } else {
       values.push(START_B);
       for (const ch of text) values.push(ch.charCodeAt(0) - 32);
@@ -917,7 +1131,7 @@
     return { runs: runs, totalModules: x };
   }
 
-  /* ================= 横向 SVG ================= */
+  /* ================= SVG 构建 ================= */
   function buildSVG(text, width, barHeight, textHeight, fontSize, unit) {
     const info = code128Runs(text);
     const runs = info.runs;
@@ -932,14 +1146,6 @@
     svg.setAttribute('width', width + u);
     svg.setAttribute('height', totalH + u);
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + totalH);
-
-    const bg = document.createElementNS(SVGNS, 'rect');
-    bg.setAttribute('x', 0);
-    bg.setAttribute('y', 0);
-    bg.setAttribute('width', width);
-    bg.setAttribute('height', totalH);
-    bg.setAttribute('fill', '#ffffff');
-    svg.appendChild(bg);
 
     for (let i = 0; i < runs.length; i++) {
       const rect = document.createElementNS(SVGNS, 'rect');
@@ -962,11 +1168,75 @@
       t.textContent = text;
       svg.appendChild(t);
     }
-
     return svg;
   }
 
-  /* ================= 竖向 SVG ================= */
+  function buildFitBarcodeSVG(text, showText, fontSizeMM, elemHMM) {
+    const info = code128Runs(text);
+    const runs = info.runs;
+    const quiet = 10;
+    const totalModules = info.totalModules + quiet * 2;
+    const VBW = 100, VBH = 100;
+    const mw = VBW / totalModules;
+    let textVBH = 0;
+    if (showText && fontSizeMM > 0 && elemHMM > 0) {
+      const ratio = fontSizeMM / elemHMM;
+      textVBH = Math.max(1.5, Math.min(VBH * 0.55, ratio * VBH));
+    }
+    const barH = VBH - textVBH;
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('xmlns', SVGNS);
+    svg.setAttribute('viewBox', '0 0 ' + VBW + ' ' + VBH);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    for (let i = 0; i < runs.length; i++) {
+      const rect = document.createElementNS(SVGNS, 'rect');
+      rect.setAttribute('x', ((runs[i][0] + quiet) * mw).toFixed(4));
+      rect.setAttribute('y', 0);
+      rect.setAttribute('width', (runs[i][1] * mw).toFixed(4));
+      rect.setAttribute('height', barH);
+      rect.setAttribute('fill', '#000000');
+      svg.appendChild(rect);
+    }
+    if (textVBH > 0) {
+      const t = document.createElementNS(SVGNS, 'text');
+      t.setAttribute('x', VBW / 2);
+      t.setAttribute('y', (barH + textVBH * 0.75).toFixed(3));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-family', "ui-monospace, 'Courier New', monospace");
+      t.setAttribute('font-size', (textVBH * 0.78).toFixed(3));
+      t.setAttribute('fill', '#000000');
+      t.textContent = text;
+      svg.appendChild(t);
+    }
+    return svg;
+  }
+
+  function buildQrSVG(text) {
+    if (typeof window.qrcode !== 'function') throw new Error('二维码组件未加载（需要联网）');
+    if (!text) throw new Error('内容为空');
+    const qr = window.qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    const n = qr.getModuleCount();
+    const quiet = 4;
+    const total = n + quiet * 2;
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('xmlns', SVGNS);
+    svg.setAttribute('viewBox', '0 0 ' + total + ' ' + total);
+    let d = '';
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+      }
+    }
+    const path = document.createElementNS(SVGNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', '#000000');
+    path.setAttribute('shape-rendering', 'crispEdges');
+    svg.appendChild(path);
+    return svg;
+  }
+
   function buildVerticalSVG(text, barcodeW, height, textW, fontSize, showText, unit) {
     const info = code128Runs(text);
     const runs = info.runs;
@@ -977,21 +1247,11 @@
     const offsetX = show ? textW : 0;
     const totalW = barcodeW + offsetX;
     const u = unit || '';
-
     const svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('xmlns', SVGNS);
     svg.setAttribute('width', totalW + u);
     svg.setAttribute('height', height + u);
     svg.setAttribute('viewBox', '0 0 ' + totalW + ' ' + height);
-
-    const bg = document.createElementNS(SVGNS, 'rect');
-    bg.setAttribute('x', 0);
-    bg.setAttribute('y', 0);
-    bg.setAttribute('width', totalW);
-    bg.setAttribute('height', height);
-    bg.setAttribute('fill', '#ffffff');
-    svg.appendChild(bg);
-
     for (let i = 0; i < runs.length; i++) {
       const rect = document.createElementNS(SVGNS, 'rect');
       rect.setAttribute('x', offsetX);
@@ -1001,7 +1261,6 @@
       rect.setAttribute('fill', '#000000');
       svg.appendChild(rect);
     }
-
     if (show) {
       const cx = textW / 2;
       const cy = height / 2;
@@ -1017,11 +1276,10 @@
       t.textContent = text;
       svg.appendChild(t);
     }
-
     return svg;
   }
 
-  /* ================= 导出 PNG（单条） ================= */
+  /* ================= 导出 PNG / ZIP ================= */
   function downloadPNG(svg, name) {
     const w = parseFloat(svg.getAttribute('width'));
     const h = parseFloat(svg.getAttribute('height'));
@@ -1030,7 +1288,6 @@
                           { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const img = new Image();
-
     img.onload = function () {
       const scale = Math.max(1, 900 / w);
       const canvas = document.createElement('canvas');
@@ -1041,7 +1298,6 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-
       canvas.toBlob(function (b) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(b);
@@ -1059,7 +1315,6 @@
     img.src = url;
   }
 
-  /* ================= SVG → PNG Blob ================= */
   function svgToPngBlob(svg, width, height) {
     return new Promise(function (resolve, reject) {
       const svgString = new XMLSerializer().serializeToString(svg);
@@ -1067,7 +1322,6 @@
                             { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const img = new Image();
-
       img.onload = function () {
         try {
           const canvas = document.createElement('canvas');
@@ -1079,30 +1333,20 @@
           ctx.drawImage(img, 0, 0, width, height);
           URL.revokeObjectURL(url);
           canvas.toBlob(function (b) {
-            if (b) resolve(b);
-            else reject(new Error('PNG 生成失败'));
+            if (b) resolve(b); else reject(new Error('PNG 生成失败'));
           }, 'image/png');
-        } catch (e) {
-          URL.revokeObjectURL(url);
-          reject(e);
-        }
+        } catch (e) { URL.revokeObjectURL(url); reject(e); }
       };
-      img.onerror = function () {
-        URL.revokeObjectURL(url);
-        reject(new Error('条码渲染失败'));
-      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('条码渲染失败')); };
       img.src = url;
     });
   }
 
-  /* ================= 极简 ZIP 打包（Store 模式） ================= */
   const CRC_TABLE = (function () {
     const t = new Uint32Array(256);
     for (let n = 0; n < 256; n++) {
       let c = n;
-      for (let k = 0; k < 8; k++) {
-        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-      }
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
       t[n] = c >>> 0;
     }
     return t;
@@ -1110,9 +1354,7 @@
 
   function crc32(u8) {
     let c = 0xFFFFFFFF;
-    for (let i = 0; i < u8.length; i++) {
-      c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
-    }
+    for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
     return (c ^ 0xFFFFFFFF) >>> 0;
   }
 
@@ -1121,13 +1363,11 @@
     const parts = [];
     const central = [];
     let offset = 0;
-
     files.forEach(function (f) {
       const nameBytes = enc.encode(f.name);
       const data = f.data;
       const size = data.length;
       const crc = crc32(data);
-
       const lh = new Uint8Array(30 + nameBytes.length);
       const ldv = new DataView(lh.buffer);
       ldv.setUint32(0, 0x04034b50, true);
@@ -1143,7 +1383,6 @@
       ldv.setUint16(28, 0, true);
       lh.set(nameBytes, 30);
       parts.push(lh, data);
-
       const ch = new Uint8Array(46 + nameBytes.length);
       const cdv = new DataView(ch.buffer);
       cdv.setUint32(0, 0x02014b50, true);
@@ -1165,13 +1404,10 @@
       cdv.setUint32(42, offset, true);
       ch.set(nameBytes, 46);
       central.push(ch);
-
       offset += lh.length + size;
     });
-
     let centralSize = 0;
     central.forEach(function (c) { centralSize += c.length; });
-
     const eocd = new Uint8Array(22);
     const edv = new DataView(eocd.buffer);
     edv.setUint32(0, 0x06054b50, true);
@@ -1182,14 +1418,10 @@
     edv.setUint32(12, centralSize, true);
     edv.setUint32(16, offset, true);
     edv.setUint16(20, 0, true);
-
     return new Blob(parts.concat(central, [eocd]), { type: 'application/zip' });
   }
 
-  /* ================= 文件名工具 ================= */
-  function padSeq(n) {
-    return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n;
-  }
+  function padSeq(n) { return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n; }
   function safeFileName(s) {
     let name = String(s).replace(/[\\/:*?"<>|\x00-\x1F]/g, '_').trim();
     if (!name) name = 'barcode';
@@ -1198,7 +1430,7 @@
   }
   function buildTimestamp() {
     const d = new Date();
-    const p2 = function (n) { return String(n).padStart(2, '0'); };
+    const p2 = n => String(n).padStart(2, '0');
     return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + '-' +
            p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
   }
@@ -1212,7 +1444,6 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
   }
 
-  /* ================= 一键下载全部条码 ZIP ================= */
   function validateAscii(text) {
     if (!text.length) return false;
     for (let i = 0; i < text.length; i++) {
@@ -1224,70 +1455,45 @@
 
   async function downloadAllBarcodes() {
     syncNormalFromDOM();
-
     const allLines = getNormalLines();
-    if (!allLines.length) {
-      alert('请先在左侧输入至少一行条码内容');
-      return;
-    }
+    if (!allLines.length) { alert('请先在左侧输入至少一行条码内容'); return; }
     const lines = allLines.slice(0, MAX_LINES);
-    if (allLines.length > MAX_LINES) {
-      alert('条码数量超过 ' + MAX_LINES + ' 个，将只导出前 ' + MAX_LINES + ' 个');
-    }
-
+    if (allLines.length > MAX_LINES) alert('条码数量超过 ' + MAX_LINES + ' 个，将只导出前 ' + MAX_LINES + ' 个');
     const bad = [];
-    lines.forEach(function (l, i) {
-      if (!validateAscii(l)) bad.push(i + 1);
-    });
+    lines.forEach(function (l, i) { if (!validateAscii(l)) bad.push(i + 1); });
     if (bad.length) {
       const shown = bad.slice(0, 10).join('、');
       alert('以下行包含不支持的字符（仅支持 ASCII 可见字符），请修改后重试：\n第 ' + shown +
             (bad.length > 10 ? ' 等 ' + bad.length + ' 行' : ' 行'));
       return;
     }
-
     const cfg = getNormalConfig();
     const textHmm = cfg.showText ? TEXT_H : 0;
     const barHmm = cfg.heightMode === 'fixed' ? cfg.fixedHeight : ZIP_DEFAULT_BAR_H;
     const contentW = Math.max(5, PAGE_W - cfg.padLeft - cfg.padRight);
     const barcodeWmm = Math.max(20, contentW * cfg.widthPct / 100);
-
     const W = Math.max(60, Math.round(barcodeWmm * ZIP_DPI));
     const HB = Math.max(20, Math.round(barHmm * ZIP_DPI));
     const HT = Math.round(textHmm * ZIP_DPI);
-
     const btn = downloadZipBtn;
     const originalText = btn.textContent;
     btn.disabled = true;
-
     try {
       const files = [];
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         btn.textContent = '生成中 ' + (i + 1) + ' / ' + lines.length;
-
-        if (i > 0 && i % 5 === 0) {
-          await new Promise(function (r) { setTimeout(r, 0); });
-        }
-
+        if (i > 0 && i % 5 === 0) await new Promise(function (r) { setTimeout(r, 0); });
         const fontMM = cfg.showText ? pickFontMM(line, barcodeWmm, textHmm) : 0;
-        const fontPx = fontMM * ZIP_DPI;
-        const svg = buildSVG(line, W, HB, HT, fontPx, '');
+        const svg = buildSVG(line, W, HB, HT, fontMM * ZIP_DPI, '');
         const blob = await svgToPngBlob(svg, W, HB + HT);
         const data = new Uint8Array(await blob.arrayBuffer());
-
-        files.push({
-          name: padSeq(i + 1) + '_' + safeFileName(line) + '.png',
-          data: data
-        });
+        files.push({ name: padSeq(i + 1) + '_' + safeFileName(line) + '.png', data: data });
       }
-
       btn.textContent = '打包中…';
       await new Promise(function (r) { setTimeout(r, 0); });
-
       const zipBlob = buildZip(files);
-      const zipName = '条形码_' + buildTimestamp() + '_' + files.length + '.zip';
-      triggerBlobDownload(zipBlob, zipName);
+      triggerBlobDownload(zipBlob, '条形码_' + buildTimestamp() + '_' + files.length + '.zip');
     } catch (err) {
       alert('导出失败：' + (err && err.message ? err.message : '未知错误'));
     } finally {
@@ -1296,7 +1502,7 @@
     }
   }
 
-  /* ================= 普通模式配置与布局 ================= */
+  /* ================= 普通模式配置 ================= */
   function getNormalConfig() {
     const n = state.normal;
     return {
@@ -1323,9 +1529,7 @@
     const contentW = Math.max(5, PAGE_W - cfg.padLeft - cfg.padRight);
     const contentH = Math.max(5, PAGE_H - cfg.padTop - cfg.padBottom);
     const textH = cfg.showText ? TEXT_H : 0;
-
     let barH, unitH, overflow = false;
-
     if (cfg.heightMode === 'auto') {
       const raw = (contentH - cfg.gap * (n - 1)) / n;
       barH = Math.max(3, raw - textH);
@@ -1352,12 +1556,8 @@
     const unitH = barH + textH;
     const overflow = unitH > base.contentH + 0.001;
     return {
-      contentW: base.contentW,
-      contentH: base.contentH,
-      barH: barH,
-      unitH: unitH,
-      textH: textH,
-      overflow: overflow
+      contentW: base.contentW, contentH: base.contentH,
+      barH: barH, unitH: unitH, textH: textH, overflow: overflow
     };
   }
 
@@ -1367,7 +1567,7 @@
     return Math.max(1.0, Math.min(textH * 0.74, byWidth, 3.4));
   }
 
-  /* ================= 快递单配置与布局 ================= */
+  /* ================= 快递单配置 ================= */
   function getExpressConfig() {
     const n = state.normal;
     const x = state.express;
@@ -1395,31 +1595,18 @@
     const textH = cfg.showText ? TEXT_H : 0;
     const topH = cfg.barH + textH;
     const midH = Math.max(3, contentH - topH - cfg.gap);
-
     const vTextW = (cfg.showVBarcode && cfg.showVText) ? TEXT_H : 0;
     const vbTotalW = cfg.showVBarcode ? (cfg.vBarW + vTextW) : 0;
     const reserveW = cfg.showVBarcode ? (vbTotalW + cfg.gap) : 0;
     const contentAreaW = Math.max(4, contentW - reserveW);
-
     const maxTop = Math.max(0, midH - 8);
     const vBarTop = cfg.showVBarcode ? Math.min(cfg.vBarTop, maxTop) : 0;
     const availH = Math.max(4, midH - vBarTop);
     let vBarH = availH;
-    if (cfg.showVBarcode && cfg.vBarH > 0) {
-      vBarH = Math.min(cfg.vBarH, availH);
-    }
-
+    if (cfg.showVBarcode && cfg.vBarH > 0) vBarH = Math.min(cfg.vBarH, availH);
     return {
-      contentW,
-      contentH,
-      topH,
-      midH,
-      vTextW,
-      vbTotalW,
-      contentAreaW,
-      contentAreaH: midH,
-      vBarTop,
-      vBarH
+      contentW, contentH, topH, midH, vTextW, vbTotalW,
+      contentAreaW, contentAreaH: midH, vBarTop, vBarH
     };
   }
 
@@ -1446,18 +1633,265 @@
     return Math.max(1.0, Math.min(byWidth, byHeight, 3.2));
   }
 
-  /* ================= 快递单子标签切换 ================= */
+  /* ================= 自定义配置 ================= */
+  function getCustomContentSize() {
+    const n = state.normal;
+    const padL = clampNum(n.padLeft, 0, 40, 2);
+    const padR = clampNum(n.padRight, 0, 40, 2);
+    const padT = clampNum(n.padTop, 0, 80, 10);
+    const padB = clampNum(n.padBottom, 0, 80, 3);
+    return {
+      padL: padL, padR: padR, padT: padT, padB: padB,
+      w: Math.max(10, PAGE_W - padL - padR),
+      h: Math.max(10, PAGE_H - padT - padB)
+    };
+  }
+
+  function getCurrentCustomPage() {
+    const c = state.custom;
+    let i = c.currentPage || 0;
+    if (i >= c.pages.length) i = c.pages.length - 1;
+    if (i < 0) i = 0;
+    c.currentPage = i;
+    return c.pages[i];
+  }
+
+  function findElementById(id) {
+    for (let i = 0; i < state.custom.pages.length; i++) {
+      const p = state.custom.pages[i];
+      const e = p.elements.find(function (x) { return x.id === id; });
+      if (e) return { page: p, el: e, pageIndex: i };
+    }
+    return null;
+  }
+
+  /* ================= 历史记录数据 ================= */
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [];
+      return arr.filter(function (e) {
+        return e && typeof e === 'object' && e.snapshot && e.id;
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveHistoryList(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getHistoryById(id) {
+    const list = loadHistory();
+    return list.find(function (e) { return e.id === id; }) || null;
+  }
+
+  function generateHistoryThumb(snapshot) {
+    const W = 120, H = 205;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    if (snapshot.mode === 'normal') {
+      const cfg = snapshot.cfg;
+      const lines = snapshot.lines || [];
+      const perPage = cfg.perPage || 6;
+      const count = Math.min(lines.length, perPage);
+      const padT = (cfg.padTop || 10) / 130 * H;
+      const padL = (cfg.padLeft || 2) / 76 * W;
+      const padR = (cfg.padRight || 2) / 76 * W;
+      const areaH = H - padT - (cfg.padBottom || 3) / 130 * H;
+      const areaW = W - padL - padR;
+      const unitH = areaH / perPage;
+
+      if (padT > 4) {
+        ctx.fillStyle = '#f0f4ff';
+        ctx.fillRect(padL, 0, areaW, padT);
+      }
+      for (let i = 0; i < count; i++) {
+        const y = padT + i * unitH + unitH * 0.15;
+        const barH = Math.max(2, unitH * 0.55);
+        ctx.fillStyle = '#111';
+        let x = padL;
+        while (x < W - padR) {
+          const w = 0.8 + Math.random() * 2.2;
+          if (x + w > W - padR) break;
+          ctx.fillRect(x, y, w, barH);
+          x += w + 1;
+        }
+        if (cfg.showText) {
+          ctx.fillStyle = '#999';
+          ctx.fillRect(padL + areaW * 0.3, y + barH + 1, areaW * 0.4, 2);
+        }
+      }
+    } else if (snapshot.mode === 'express') {
+      const cfg = snapshot.cfg;
+      const page = (snapshot.pages || [])[0];
+      if (!page) return canvas.toDataURL();
+      const padT = (cfg.padTop || 10) / 130 * H;
+      const padL = (cfg.padLeft || 2) / 76 * W;
+      const padR = (cfg.padRight || 2) / 76 * W;
+      const barH = (cfg.barH || 12) / 130 * H;
+      let x = padL;
+      ctx.fillStyle = '#111';
+      while (x < W - padR) {
+        const w = 0.8 + Math.random() * 2.2;
+        if (x + w > W - padR) break;
+        ctx.fillRect(x, padT, w, barH);
+        x += w + 1;
+      }
+      const midY = padT + barH + 4;
+      const midH = H - midY - 8;
+      const vBarW = (cfg.vBarW || 12) / 76 * W;
+      const contentW = W - padL - padR - vBarW - 4;
+      ctx.fillStyle = '#ccc';
+      for (let i = 0; i < Math.floor(midH / 6); i++) {
+        ctx.fillRect(padL, midY + i * 6, contentW * (0.5 + Math.random() * 0.5), 2);
+      }
+      if (cfg.showVBarcode !== false) {
+        const vx = W - padR - vBarW;
+        const vTop = midY + (cfg.vBarTop || 0) / 130 * H;
+        let vLen = midH;
+        if (cfg.vBarH > 0) vLen = Math.min(cfg.vBarH / 130 * H, midH);
+        let vy = vTop;
+        ctx.fillStyle = '#111';
+        while (vy < vTop + vLen) {
+          const h = 0.8 + Math.random() * 2.2;
+          if (vy + h > vTop + vLen) break;
+          ctx.fillRect(vx, vy, vBarW, h);
+          vy += h + 1;
+        }
+      }
+    } else if (snapshot.mode === 'custom') {
+      const page = (snapshot.pages || [])[0];
+      const cs = snapshot.contentSize;
+      if (!page || !cs) return canvas.toDataURL();
+      const scaleX = W / 76;
+      const scaleY = H / 130;
+      if (cs.padT > 2) {
+        ctx.fillStyle = '#f0f4ff';
+        ctx.fillRect(cs.padL * scaleX, 0, cs.w * scaleX, cs.padT * scaleY);
+      }
+      page.elements.forEach(function (e) {
+        const x = (cs.padL + e.x) * scaleX;
+        const y = (cs.padT + e.y) * scaleY;
+        const w = Math.max(2, e.w * scaleX);
+        const h = Math.max(1, e.h * scaleY);
+        if (e.type === 'barcode') {
+          ctx.fillStyle = '#111';
+          let lx = x;
+          while (lx < x + w) {
+            const lw = 0.8 + Math.random() * 1.8;
+            if (lx + lw > x + w) break;
+            ctx.fillRect(lx, y, lw, h * 0.8);
+            lx += lw + 1;
+          }
+        } else if (e.type === 'qrcode') {
+          ctx.fillStyle = '#333';
+          const cell = Math.max(1, w / 10);
+          for (let r = 0; r < 10; r++)
+            for (let c = 0; c < 10; c++)
+              if (Math.random() > 0.5) ctx.fillRect(x + c * cell, y + r * cell, cell, cell);
+        } else if (e.type === 'text') {
+          ctx.fillStyle = '#888';
+          for (let i = 0; i < Math.min(3, Math.ceil(h / 3)); i++)
+            ctx.fillRect(x, y + i * 3, w * (0.6 + Math.random() * 0.4), 1.5);
+        } else {
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fillRect(x, y, w, h);
+        }
+      });
+    }
+    return canvas.toDataURL('image/png');
+  }
+
+  function addHistoryEntry(snapshot) {
+    // 生成标题、页数、摘要
+    let title = '', pageCount = 0, summary = '';
+
+    if (snapshot.mode === 'normal') {
+      pageCount = Math.ceil(snapshot.lines.length / snapshot.cfg.perPage) || 0;
+      title = '普通模式 · ' + snapshot.lines.length + ' 个条码';
+      summary = snapshot.lines.slice(0, 2).join(' / ') +
+                (snapshot.lines.length > 2 ? ' …' : '');
+    } else if (snapshot.mode === 'express') {
+      pageCount = snapshot.pages.length;
+      title = '快递单 · ' + pageCount + ' 页';
+      summary = (snapshot.pages[0] && snapshot.pages[0].barcode) || '';
+    } else if (snapshot.mode === 'custom') {
+      pageCount = snapshot.pages.length;
+      const totalEls = snapshot.pages.reduce(function (s, p) { return s + p.elements.length; }, 0);
+      title = '自定义 · ' + pageCount + ' 页 · ' + totalEls + ' 个元素';
+      summary = snapshot.pages[0] ?
+        snapshot.pages[0].elements.map(function (e) {
+          return e.type === 'barcode' ? '条码' : e.type === 'qrcode' ? '二维码' :
+                 e.type === 'image' ? '图片' : '文本';
+        }).slice(0, 4).join(' · ') : '';
+    }
+
+    const entry = {
+      id: 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+      timestamp: Date.now(),
+      mode: snapshot.mode,
+      title: title,
+      pageCount: pageCount,
+      summary: summary,
+      thumb: generateHistoryThumb(snapshot),
+      snapshot: snapshot
+    };
+
+    // 检查大小
+    let entryStr = '';
+    try { entryStr = JSON.stringify(entry); } catch (e) { return false; }
+    if (entryStr.length > MAX_ENTRY_SIZE) {
+      showToast('本次打印内容较大，已超出历史记录存储上限，未保存历史', 5000);
+      return false;
+    }
+
+    let list = loadHistory();
+    list.unshift(entry);
+    if (list.length > MAX_HISTORY) list = list.slice(0, MAX_HISTORY);
+
+    // 尝试保存，失败时逐步删除旧记录
+    let attempts = 0;
+    while (!saveHistoryList(list) && list.length > 1 && attempts < 30) {
+      list.pop();
+      attempts++;
+    }
+    if (!saveHistoryList(list)) {
+      showToast('本地存储空间不足，历史记录保存失败', 4000);
+      return false;
+    }
+
+    if (attempts > 0) {
+      showToast('存储空间紧张，已自动清理 ' + attempts + ' 条较旧的历史记录', 3500);
+    }
+    return true;
+  }
+
+  /* ================= 快递单子标签 / 页编辑 ================= */
   function renderExpressSubTabs() {
     const sub = state.express.subTab === 'settings' ? 'settings' : 'content';
     const btns = expressSubTabs.querySelectorAll('.sub-tab');
-    btns.forEach(function (b) {
-      b.classList.toggle('active', b.dataset.subtab === sub);
-    });
+    btns.forEach(function (b) { b.classList.toggle('active', b.dataset.subtab === sub); });
     expressContentPanel.hidden = sub !== 'content';
     expressSettingsPanel.hidden = sub !== 'settings';
   }
 
-  /* ================= 快递单：标签栏 + 编辑区 + 高级选项 ================= */
   function renderExpressPageEditor() {
     const pages = state.express.pages;
     let cur = state.express.currentPage || 0;
@@ -1465,7 +1899,6 @@
     if (cur < 0) cur = 0;
     state.express.currentPage = cur;
 
-    /* --- 页标签栏 --- */
     pageTabs.innerHTML = '';
     pages.forEach(function (p, i) {
       const btn = document.createElement('button');
@@ -1484,7 +1917,6 @@
     addBtn.title = '添加一页';
     pageTabs.appendChild(addBtn);
 
-    /* --- 当前页编辑区 --- */
     pageEditor.innerHTML = '';
     const page = pages[cur];
 
@@ -1525,7 +1957,6 @@
     ctField.appendChild(ctArea);
     pageEditor.appendChild(ctField);
 
-    /* --- 高级选项：纵向条码内容 --- */
     advBody.innerHTML = '';
     const advField = el('label', 'field');
     const advLbl = el('span', 'lbl');
@@ -1543,7 +1974,7 @@
     advBody.appendChild(advField);
   }
 
-  /* ================= 普通模式：构建一张面单 ================= */
+  /* ================= 普通模式面单构建 ================= */
   function buildNormalPaper(cfg, layout, chunk, u, barcodeWMM) {
     const paper = el('div', 'paper');
     paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
@@ -1568,7 +1999,6 @@
     chunk.forEach(function (line) {
       const item = el('div', 'paper-item');
       item.style.height = (layout.unitH * u).toFixed(2) + 'px';
-
       let svg = null;
       try {
         const fontMM = pickFontMM(line, barcodeWMM, layout.textH);
@@ -1579,7 +2009,6 @@
         e.textContent = '内容无效：' + err.message;
         item.appendChild(e);
       }
-
       if (svg) {
         const dl = document.createElement('button');
         dl.className = 'dl-btn';
@@ -1598,11 +2027,10 @@
     return paper;
   }
 
-  /* ================= 普通模式：列表预览 ================= */
+  /* ================= 普通模式预览 ================= */
   function renderNormalListPreview(cfg, allLines) {
     const lines = allLines.slice(0, MAX_LINES);
     const layout = computeNormalLayout(cfg, cfg.perPage);
-
     const msgs = [];
     if (cfg.padTop + cfg.padBottom > PAGE_H - 12) msgs.push('上下边距之和过大，可用高度不足。');
     if (layout.overflow) msgs.push('条码总高度超出可用区域，已自动压缩，建议减小条码高度或每页数量。');
@@ -1636,7 +2064,6 @@
     });
 
     previewPages.appendChild(frag);
-
     if (allPages.length > PREVIEW_MAX_PAGES) {
       const more = el('div', 'page-more');
       more.textContent = '为保持流畅，预览仅显示前 ' + PREVIEW_MAX_PAGES + ' 页，打印时会输出全部 ' + allPages.length + ' 页';
@@ -1644,13 +2071,10 @@
     }
   }
 
-  /* ================= 普通模式：单条翻阅预览 ================= */
   function renderNormalSinglePreview(cfg, allLines) {
     const lines = allLines.slice(0, MAX_LINES);
     const total = lines.length;
-
     const layout = computeSingleLayout(cfg);
-
     const msgs = [];
     if (cfg.padTop + cfg.padBottom > PAGE_H - 12) msgs.push('上下边距之和过大，可用高度不足。');
     if (layout.overflow) msgs.push('条码高度 ' + layout.barH.toFixed(1) + ' mm 超出可用区域，建议减小单条翻阅高度或上下边距。');
@@ -1701,9 +2125,7 @@
     nav.appendChild(counter);
     nav.appendChild(next);
     wrap.appendChild(nav);
-
     wrap.appendChild(buildNormalPaper(cfg, layout, [lines[idx]], u, barcodeWMM));
-
     previewPages.appendChild(wrap);
   }
 
@@ -1720,23 +2142,90 @@
     }
   }
 
-  /* ================= 普通模式预览入口 ================= */
   function renderNormalPreview() {
     const cfg = getNormalConfig();
     const allLines = getNormalLines();
-    if (state.normal.previewMode === 'single') {
-      renderNormalSinglePreview(cfg, allLines);
-    } else {
-      renderNormalListPreview(cfg, allLines);
-    }
+    if (state.normal.previewMode === 'single') renderNormalSinglePreview(cfg, allLines);
+    else renderNormalListPreview(cfg, allLines);
   }
 
-  /* ================= 快递单预览 ================= */
+  /* ================= 快递单预览公共构建 ================= */
+  function buildExpressPreviewPaper(page, cfg, layout, u) {
+    const paper = el('div', 'paper');
+    paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
+    paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
+
+    if (cfg.padTop > 0) {
+      const guide = el('div', 'guide-top');
+      guide.style.height = (cfg.padTop * u).toFixed(2) + 'px';
+      guide.textContent = '厂商图标区 ' + cfg.padTop + 'mm';
+      paper.appendChild(guide);
+    }
+
+    const body = el('div', 'paper-body express-body');
+    body.style.padding =
+      (cfg.padTop * u).toFixed(2) + 'px ' +
+      (cfg.padRight * u).toFixed(2) + 'px ' +
+      (cfg.padBottom * u).toFixed(2) + 'px ' +
+      (cfg.padLeft * u).toFixed(2) + 'px';
+
+    const top = el('div', 'express-top-barcode');
+    top.style.height = (layout.topH * u).toFixed(2) + 'px';
+    const bc = (page.barcode || '').trim();
+    try {
+      if (!bc) throw new Error('内容为空');
+      const barcodeWMM = layout.contentW * cfg.widthPct / 100;
+      const fontMM = cfg.showText ? pickFontMM(bc, barcodeWMM, TEXT_H) : 0;
+      const textH = cfg.showText ? TEXT_H : 0;
+      top.appendChild(buildSVG(bc, barcodeWMM * u, cfg.barH * u, textH * u, fontMM * u, ''));
+    } catch (err) {
+      const e = el('div', 'express-err');
+      e.textContent = '条码无效：' + err.message;
+      top.appendChild(e);
+    }
+    body.appendChild(top);
+
+    const main = el('div', 'express-main');
+    main.style.marginTop = (cfg.gap * u).toFixed(2) + 'px';
+    main.style.height = (layout.midH * u).toFixed(2) + 'px';
+
+    const content = el('div', 'express-content');
+    const fsMM = fitExpressFontMM(page.content || '', layout.contentAreaW, layout.contentAreaH);
+    content.style.fontSize = (fsMM * u).toFixed(2) + 'px';
+    content.style.lineHeight = '1.5';
+    content.textContent = page.content || '';
+    main.appendChild(content);
+
+    if (cfg.showVBarcode) {
+      const vb = el('div', 'express-vbarcode');
+      vb.style.width = (layout.vbTotalW * u).toFixed(2) + 'px';
+      vb.style.height = (layout.vBarH * u).toFixed(2) + 'px';
+      vb.style.marginTop = (layout.vBarTop * u).toFixed(2) + 'px';
+      vb.style.marginLeft = (cfg.gap * u).toFixed(2) + 'px';
+      const vText = (page.vBarcode || '').trim() || bc;
+      try {
+        if (!vText) throw new Error('内容为空');
+        const vFontMM = cfg.showVText ? pickVerticalFontMM(vText, layout.vBarH, layout.vTextW) : 0;
+        vb.appendChild(buildVerticalSVG(
+          vText, cfg.vBarW * u, layout.vBarH * u, layout.vTextW * u, vFontMM * u, cfg.showVText, ''
+        ));
+      } catch (err) {
+        const e = el('div', 'express-err');
+        e.textContent = '竖条码无效：' + err.message;
+        vb.appendChild(e);
+      }
+      main.appendChild(vb);
+    }
+
+    body.appendChild(main);
+    paper.appendChild(body);
+    return paper;
+  }
+
   function renderExpressPreview() {
     const cfg = getExpressConfig();
     const layout = computeExpressLayout(cfg);
     const pages = state.express.pages;
-
     const msgs = [];
     if (cfg.padTop + cfg.padBottom > PAGE_H - 20) msgs.push('上下边距之和过大，可用高度不足。');
     if (layout.midH < 10) msgs.push('中间区域高度不足，请减小横条码高度或边距。');
@@ -1763,119 +2252,845 @@
 
     const u = PX_PER_MM * cfg.zoom;
     const frag = document.createDocumentFragment();
-
     pages.forEach(function (page, pi) {
       const wrap = el('div', 'paper-wrap');
       const cap = el('div', 'paper-cap');
       cap.textContent = '第 ' + (pi + 1) + ' / ' + pages.length + ' 张 · 76 × 130 mm';
       wrap.appendChild(cap);
-
-      const paper = el('div', 'paper');
-      paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
-      paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
-
-      if (cfg.padTop > 0) {
-        const guide = el('div', 'guide-top');
-        guide.style.height = (cfg.padTop * u).toFixed(2) + 'px';
-        guide.textContent = '厂商图标区 ' + cfg.padTop + 'mm';
-        paper.appendChild(guide);
-      }
-
-      const body = el('div', 'paper-body express-body');
-      body.style.padding =
-        (cfg.padTop * u).toFixed(2) + 'px ' +
-        (cfg.padRight * u).toFixed(2) + 'px ' +
-        (cfg.padBottom * u).toFixed(2) + 'px ' +
-        (cfg.padLeft * u).toFixed(2) + 'px';
-
-      const top = el('div', 'express-top-barcode');
-      top.style.height = (layout.topH * u).toFixed(2) + 'px';
-      const bc = (page.barcode || '').trim();
-      try {
-        if (!bc) throw new Error('内容为空');
-        const barcodeWMM = layout.contentW * cfg.widthPct / 100;
-        const fontMM = cfg.showText ? pickFontMM(bc, barcodeWMM, TEXT_H) : 0;
-        const textH = cfg.showText ? TEXT_H : 0;
-        top.appendChild(buildSVG(bc, barcodeWMM * u, cfg.barH * u, textH * u, fontMM * u, ''));
-      } catch (err) {
-        const e = el('div', 'express-err');
-        e.textContent = '条码无效：' + err.message;
-        top.appendChild(e);
-      }
-      body.appendChild(top);
-
-      const main = el('div', 'express-main');
-      main.style.marginTop = (cfg.gap * u).toFixed(2) + 'px';
-      main.style.height = (layout.midH * u).toFixed(2) + 'px';
-
-      const content = el('div', 'express-content');
-      const fsMM = fitExpressFontMM(page.content || '', layout.contentAreaW, layout.contentAreaH);
-      content.style.fontSize = (fsMM * u).toFixed(2) + 'px';
-      content.style.lineHeight = '1.5';
-      content.textContent = page.content || '';
-      main.appendChild(content);
-
-      if (cfg.showVBarcode) {
-        const vb = el('div', 'express-vbarcode');
-        vb.style.width = (layout.vbTotalW * u).toFixed(2) + 'px';
-        vb.style.height = (layout.vBarH * u).toFixed(2) + 'px';
-        vb.style.marginTop = (layout.vBarTop * u).toFixed(2) + 'px';
-        vb.style.marginLeft = (cfg.gap * u).toFixed(2) + 'px';
-        // 优先使用高级选项中的纵向条码内容，留空则与横条码一致
-        const vText = (page.vBarcode || '').trim() || bc;
-        try {
-          if (!vText) throw new Error('内容为空');
-          const vFontMM = cfg.showVText ? pickVerticalFontMM(vText, layout.vBarH, layout.vTextW) : 0;
-          vb.appendChild(buildVerticalSVG(
-            vText,
-            cfg.vBarW * u,
-            layout.vBarH * u,
-            layout.vTextW * u,
-            vFontMM * u,
-            cfg.showVText,
-            ''
-          ));
-        } catch (err) {
-          const e = el('div', 'express-err');
-          e.textContent = '竖条码无效：' + err.message;
-          vb.appendChild(e);
-        }
-        main.appendChild(vb);
-      }
-
-      body.appendChild(main);
-
-      paper.appendChild(body);
-      wrap.appendChild(paper);
+      wrap.appendChild(buildExpressPreviewPaper(page, cfg, layout, u));
       frag.appendChild(wrap);
     });
+    previewPages.appendChild(frag);
+  }
+
+  /* ================= 自定义预览 ================= */
+  function buildCustomElContent(elData, f, unit) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ce-content';
+    if (elData.type === 'barcode') {
+      try {
+        const svg = buildFitBarcodeSVG(elData.value, elData.showText !== false, elData.fontSize, elData.h);
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.display = 'block';
+        wrap.appendChild(svg);
+      } catch (err) {
+        const d = document.createElement('div');
+        d.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#b91c1c;text-align:center;padding:2px;';
+        d.textContent = '条码无效：' + err.message;
+        wrap.appendChild(d);
+      }
+    } else if (elData.type === 'qrcode') {
+      try {
+        const svg = buildQrSVG(elData.value);
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.display = 'block';
+        wrap.appendChild(svg);
+      } catch (err) {
+        const d = document.createElement('div');
+        d.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#b91c1c;text-align:center;padding:2px;';
+        d.textContent = '二维码：' + err.message;
+        wrap.appendChild(d);
+      }
+    } else if (elData.type === 'text') {
+      const d = document.createElement('div');
+      d.style.cssText = 'width:100%;height:100%;white-space:pre-wrap;word-break:break-word;overflow:hidden;line-height:1.25;color:#000;';
+      d.style.fontSize = (elData.fontSize * f).toFixed(2) + unit;
+      d.textContent = elData.value || '';
+      wrap.appendChild(d);
+    } else if (elData.type === 'image') {
+      if (elData.src) {
+        const img = document.createElement('img');
+        img.src = elData.src;
+        img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
+        img.draggable = false;
+        img.alt = '';
+        wrap.appendChild(img);
+      } else {
+        const d = document.createElement('div');
+        d.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9aa3b2;border:1px dashed #cfd8e6;';
+        d.textContent = '图片';
+        wrap.appendChild(d);
+      }
+    }
+    return wrap;
+  }
+
+  function addHandles(node) {
+    ['nw','n','ne','e','se','s','sw','w'].forEach(function (pos) {
+      const h = document.createElement('div');
+      h.className = 'ce-handle h-' + pos;
+      h.dataset.h = pos;
+      node.appendChild(h);
+    });
+    const rot = document.createElement('div');
+    rot.className = 'ce-rot';
+    rot.dataset.h = 'rot';
+    node.appendChild(rot);
+  }
+
+  function buildCustomElNode(elData, f, unit, selected) {
+    const node = document.createElement('div');
+    node.className = 'ce' + (selected ? ' selected' : '');
+    node.dataset.id = elData.id;
+    node.style.left = (elData.x * f).toFixed(2) + unit;
+    node.style.top = (elData.y * f).toFixed(2) + unit;
+    node.style.width = (elData.w * f).toFixed(2) + unit;
+    node.style.height = (elData.h * f).toFixed(2) + unit;
+    node.style.transform = 'rotate(' + elData.rot + 'deg)';
+    node.appendChild(buildCustomElContent(elData, f, unit));
+    if (selected) addHandles(node);
+    return node;
+  }
+
+  function buildCustomPreviewPaper(page, cs, u, selectedId) {
+    const paper = el('div', 'paper');
+    paper.style.width = (PAGE_W * u).toFixed(2) + 'px';
+    paper.style.height = (PAGE_H * u).toFixed(2) + 'px';
+
+    if (cs.padT > 0) {
+      const guide = el('div', 'guide-top');
+      guide.style.height = (cs.padT * u).toFixed(2) + 'px';
+      guide.textContent = '厂商图标区 ' + cs.padT + 'mm';
+      paper.appendChild(guide);
+    }
+
+    const canvas = el('div', 'ce-canvas');
+    canvas.style.left = (cs.padL * u).toFixed(2) + 'px';
+    canvas.style.top = (cs.padT * u).toFixed(2) + 'px';
+    canvas.style.width = (cs.w * u).toFixed(2) + 'px';
+    canvas.style.height = (cs.h * u).toFixed(2) + 'px';
+
+    page.elements.forEach(function (e) {
+      const selected = !!(selectedId && e.id === selectedId);
+      canvas.appendChild(buildCustomElNode(e, u, 'px', selected));
+    });
+
+    if (!page.elements.length) {
+      const hint = el('div', 'ce-empty-hint');
+      hint.textContent = '本页还没有元素';
+      canvas.appendChild(hint);
+    }
+
+    paper.appendChild(canvas);
+    return paper;
+  }
+
+  function renderCustomPreview() {
+    const n = state.normal;
+    const zoom = clampNum(n.zoom, 0.5, 3, 1.5);
+    const u = PX_PER_MM * zoom;
+    const cs = getCustomContentSize();
+    const pages = state.custom.pages;
+    let cur = state.custom.currentPage;
+    if (!pages.length) {
+      previewPages.innerHTML = '<div class="empty-tip">请先添加至少一页</div>';
+      return;
+    }
+    if (cur >= pages.length) cur = pages.length - 1;
+    if (cur < 0) cur = 0;
+    state.custom.currentPage = cur;
+
+    zoomValEl.textContent = Math.round(zoom * 100) + '%';
+    previewTitle.innerHTML = '打印预览 · 自定义模式 · 第 ' + (cur + 1) + ' / ' + pages.length +
+      ' 页 · 纸张 <b>76 × 130 mm</b>（7.6cm × 13cm）';
+
+    const msgs = [];
+    if (cs.w < 20 || cs.h < 20) msgs.push('内容区域过小，请减小页面边距。');
+    pages[cur].elements.forEach(function (e) {
+      if ((e.type === 'barcode' || e.type === 'qrcode') && !e.value) {
+        msgs.push('本页有未填写内容的' + (e.type === 'barcode' ? '条码' : '二维码') + '。');
+      }
+    });
+    if (msgs.length) { warnCustom.textContent = msgs.slice(0, 3).join(' '); warnCustom.hidden = false; }
+    else warnCustom.hidden = true;
+
+    previewPages.innerHTML = '';
+    const page = pages[cur];
+    const wrap = el('div', 'paper-wrap');
+    const cap = el('div', 'paper-cap');
+    cap.textContent = '第 ' + (cur + 1) + ' / ' + pages.length + ' 张 · 76 × 130 mm · 编辑中';
+    wrap.appendChild(cap);
+    wrap.appendChild(buildCustomPreviewPaper(page, cs, u, state.custom.selectedId));
+    previewPages.appendChild(wrap);
+  }
+
+  /* ================= 自定义元素列表 ================= */
+  function typeName(t) {
+    return t === 'barcode' ? '条形码' : t === 'qrcode' ? '二维码' : t === 'image' ? '图片' : '文本';
+  }
+  function typeShort(t) {
+    return t === 'barcode' ? '码' : t === 'qrcode' ? 'QR' : t === 'image' ? '图' : '字';
+  }
+  function getElementSummary(e) {
+    if (e.type === 'barcode') return e.value ? ('条码：' + e.value) : '条码：未填写';
+    if (e.type === 'qrcode') return e.value ? ('二维码：' + e.value) : '二维码：未填写';
+    if (e.type === 'text') return e.value ? ('文本：' + e.value.replace(/\n/g, ' ').slice(0, 40)) : '文本：空';
+    if (e.type === 'image') return e.src ? '图片：已添加' : '图片：无';
+    return '';
+  }
+
+  function renderCustomElList() {
+    const page = getCurrentCustomPage();
+    const cur = state.custom.currentPage;
+    customPageTitle.textContent = '第 ' + (cur + 1) + ' 页元素（' + page.elements.length + '）';
+    customDelPage.disabled = state.custom.pages.length <= 1;
+
+    customElList.innerHTML = '';
+    if (!page.elements.length) {
+      const h = el('div', 'ce-el-empty');
+      h.textContent = '本页还没有元素，请使用下方按钮添加。';
+      customElList.appendChild(h);
+      return;
+    }
+
+    page.elements.forEach(function (e, i) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'ce-el-item' + (e.id === state.custom.selectedId ? ' active' : '');
+      item.dataset.id = e.id;
+      const icon = el('span', 'ce-el-icon');
+      icon.textContent = typeShort(e.type);
+      const info = el('div', 'ce-el-info');
+      const name = el('div', 'ce-el-name');
+      name.textContent = typeName(e.type) + ' #' + (i + 1);
+      const summary = el('div', 'ce-el-summary');
+      summary.textContent = getElementSummary(e);
+      info.appendChild(name);
+      info.appendChild(summary);
+      item.appendChild(icon);
+      item.appendChild(info);
+      customElList.appendChild(item);
+    });
+  }
+
+  /* ================= 自定义属性面板 ================= */
+  function updateCustomSelection() {
+    const id = state.custom.selectedId;
+    document.querySelectorAll('.ce').forEach(function (node) {
+      const on = node.dataset.id === id;
+      node.classList.toggle('selected', on);
+      node.querySelectorAll('.ce-handle, .ce-rot').forEach(function (h) { h.remove(); });
+      if (on) addHandles(node);
+    });
+  }
+
+  function renderCustomProps() {
+    customProps.innerHTML = '';
+    const id = state.custom.selectedId;
+    if (!id) {
+      const h = el('div', 'hint');
+      h.textContent = '在右侧预览或上方列表中点击元素进行编辑，或使用上方按钮添加元素。';
+      customProps.appendChild(h);
+      return;
+    }
+    const found = findElementById(id);
+    if (!found) {
+      state.custom.selectedId = null;
+      const h = el('div', 'hint');
+      h.textContent = '在右侧预览或上方列表中点击元素进行编辑，或使用上方按钮添加元素。';
+      customProps.appendChild(h);
+      return;
+    }
+    const e = found.el;
+
+    const head = el('div', 'field');
+    const lb = el('span', 'lbl');
+    lb.innerHTML = '<span class="type-badge">' + typeName(e.type) + '</span>' +
+      ' <span style="color:#9aa3b2;font-weight:500">第 ' + (found.pageIndex + 1) + ' 页</span>';
+    head.appendChild(lb);
+    customProps.appendChild(head);
+
+    if (e.type === 'barcode' || e.type === 'qrcode' || e.type === 'text') {
+      const fld = el('label', 'field');
+      const l = el('span', 'lbl');
+      l.textContent = e.type === 'text' ? '文本内容' : (e.type === 'qrcode' ? '二维码内容' : '条码内容');
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.dataset.prop = 'value';
+      inp.value = e.value || '';
+      inp.placeholder = e.type === 'text' ? '输入文本' : '输入内容';
+      fld.appendChild(l);
+      fld.appendChild(inp);
+      customProps.appendChild(fld);
+    }
+
+    if (e.type === 'text') {
+      const fld = el('label', 'field');
+      const l = el('span', 'lbl');
+      l.textContent = '字号 (mm)';
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.dataset.prop = 'fontSize';
+      inp.min = '0.8';
+      inp.max = '60';
+      inp.step = '0.1';
+      inp.value = e.fontSize;
+      fld.appendChild(l);
+      fld.appendChild(inp);
+      customProps.appendChild(fld);
+    }
+
+    if (e.type === 'barcode') {
+      const cb = document.createElement('label');
+      cb.className = 'checkbox';
+      const c = document.createElement('input');
+      c.type = 'checkbox';
+      c.dataset.prop = 'showText';
+      c.checked = e.showText !== false;
+      const s = document.createElement('span');
+      s.textContent = '条码下方显示文本';
+      cb.appendChild(c);
+      cb.appendChild(s);
+      customProps.appendChild(cb);
+
+      if (e.showText !== false) {
+        const fld = el('label', 'field');
+        const l = el('span', 'lbl');
+        l.textContent = '条码文字大小 (mm)';
+        const inp = document.createElement('input');
+        inp.type = 'number';
+        inp.dataset.prop = 'barcodeFontSize';
+        inp.min = '1';
+        inp.max = '20';
+        inp.step = '0.1';
+        inp.value = e.fontSize;
+        fld.appendChild(l);
+        fld.appendChild(inp);
+        customProps.appendChild(fld);
+      }
+    }
+
+    if (e.type === 'image') {
+      const h = el('span', 'hint');
+      h.textContent = '图片将按元素框大小拉伸显示，可拖动边角手柄调整。';
+      customProps.appendChild(h);
+    }
+
+    const row = el('div', 'ce-prop-row');
+    const mkBtn = function (text, cls, fn) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ce-prop-btn' + (cls ? ' ' + cls : '');
+      b.textContent = text;
+      b.addEventListener('click', fn);
+      return b;
+    };
+    row.appendChild(mkBtn('复制', '', function () { duplicateElement(e.id); }));
+    row.appendChild(mkBtn('置顶', '', function () { bringToFront(e.id); }));
+    row.appendChild(mkBtn('置底', '', function () { sendToBack(e.id); }));
+    customProps.appendChild(row);
+
+    const row2 = el('div', 'ce-prop-row');
+    row2.appendChild(mkBtn('删除元素', 'danger', function () { deleteElement(e.id); }));
+    customProps.appendChild(row2);
+  }
+
+  function duplicateElement(id) {
+    const found = findElementById(id);
+    if (!found) return;
+    const copy = clone(found.el);
+    copy.id = uid();
+    copy.x = Math.min(copy.x + 3, 400);
+    copy.y = Math.min(copy.y + 3, 400);
+    found.page.elements.push(copy);
+    state.custom.selectedId = copy.id;
+    renderCustomPreview();
+    renderCustomElList();
+    renderCustomProps();
+    scheduleSave();
+  }
+  function bringToFront(id) {
+    const found = findElementById(id);
+    if (!found) return;
+    const arr = found.page.elements;
+    const i = arr.indexOf(found.el);
+    if (i < 0) return;
+    arr.splice(i, 1);
+    arr.push(found.el);
+    renderCustomPreview();
+    renderCustomElList();
+    scheduleSave();
+  }
+  function sendToBack(id) {
+    const found = findElementById(id);
+    if (!found) return;
+    const arr = found.page.elements;
+    const i = arr.indexOf(found.el);
+    if (i < 0) return;
+    arr.splice(i, 1);
+    arr.unshift(found.el);
+    renderCustomPreview();
+    renderCustomElList();
+    scheduleSave();
+  }
+  function deleteElement(id) {
+    const found = findElementById(id);
+    if (!found) return;
+    const arr = found.page.elements;
+    const i = arr.indexOf(found.el);
+    if (i < 0) return;
+    arr.splice(i, 1);
+    if (state.custom.selectedId === id) state.custom.selectedId = null;
+    renderCustomPreview();
+    renderCustomElList();
+    renderCustomProps();
+    scheduleSave();
+  }
+
+  /* ================= 自定义页标签 ================= */
+  function renderCustomPageTabs() {
+    const pages = state.custom.pages;
+    let cur = state.custom.currentPage || 0;
+    if (cur >= pages.length) cur = pages.length - 1;
+    if (cur < 0) cur = 0;
+    state.custom.currentPage = cur;
+
+    customPageTabs.innerHTML = '';
+    pages.forEach(function (p, i) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'page-tab' + (i === cur ? ' active' : '');
+      b.dataset.index = i;
+      b.textContent = '第 ' + (i + 1) + ' 页';
+      customPageTabs.appendChild(b);
+    });
+
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'page-tab-add';
+    add.dataset.action = 'add';
+    add.textContent = '＋';
+    add.title = '添加一页';
+    customPageTabs.appendChild(add);
+  }
+
+  /* ================= 添加元素与图片 ================= */
+  function addCustomElement(type, extra) {
+    const page = getCurrentCustomPage();
+    const cs = getCustomContentSize();
+    let e;
+    const cx = w => Math.max(0, Math.round((cs.w - w) / 2 * 10) / 10);
+    const cy = h => Math.max(0, Math.round((cs.h - h) / 2 * 10) / 10);
+
+    if (type === 'barcode') {
+      e = { id: uid(), type: 'barcode', w: 50, h: 16, rot: 0, value: '1234567890', showText: true, fontSize: 3.5, src: '' };
+    } else if (type === 'qrcode') {
+      e = { id: uid(), type: 'qrcode', w: 22, h: 22, rot: 0, value: 'https://example.com', showText: false, fontSize: 3.5, src: '' };
+    } else if (type === 'text') {
+      e = { id: uid(), type: 'text', w: 50, h: 10, rot: 0, value: '双击左侧可修改内容', showText: false, fontSize: 3.5, src: '' };
+    } else {
+      e = { id: uid(), type: 'image', w: 30, h: 30, rot: 0, value: '', showText: false, fontSize: 3.5, src: extra || '' };
+    }
+    e.x = cx(e.w);
+    e.y = cy(e.h);
+    page.elements.push(e);
+    state.custom.selectedId = e.id;
+    renderCustomPreview();
+    renderCustomElList();
+    renderCustomProps();
+    scheduleSave();
+    return e;
+  }
+
+  function readImageFile(file) {
+    return new Promise(function (resolve, reject) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const img = new Image();
+        img.onload = function () {
+          try {
+            const MAX = 700;
+            let w = img.width || 1;
+            let h = img.height || 1;
+            const scale = Math.min(1, MAX / Math.max(w, h));
+            w = Math.max(1, Math.round(w * scale));
+            h = Math.max(1, Math.round(h * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/png'));
+          } catch (err) { reject(err); }
+        };
+        img.onerror = function () { reject(new Error('图片解析失败')); };
+        img.src = reader.result;
+      };
+      reader.onerror = function () { reject(new Error('文件读取失败')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ================= 吸附 ================= */
+  function normalizeAngle(a) {
+    a = a % 360;
+    if (a < 0) a += 360;
+    return a;
+  }
+  function snapAngle(a) {
+    const n = normalizeAngle(a);
+    let best = n, bestD = Infinity;
+    [0, 90, 180, 270, 360].forEach(function (t) {
+      const d = Math.abs(n - t);
+      if (d < bestD) { bestD = d; best = t; }
+    });
+    if (bestD <= SNAP_ANGLE) return best % 360;
+    return n;
+  }
+
+  /* ================= 拖拽 ================= */
+  let dragState = null;
+  function dragMM(e) {
+    return {
+      x: (e.clientX - dragState.rect.left) / dragState.u,
+      y: (e.clientY - dragState.rect.top) / dragState.u
+    };
+  }
+
+  function onPreviewPointerDown(e) {
+    if (state.mode !== 'custom') return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!e.target.closest) return;
+
+    const rotH = e.target.closest('.ce-rot');
+    const handle = e.target.closest('.ce-handle');
+    const node = e.target.closest('.ce');
+
+    if (!node) {
+      if (state.custom.selectedId) {
+        state.custom.selectedId = null;
+        updateCustomSelection();
+        renderCustomElList();
+        renderCustomProps();
+        scheduleSave();
+      }
+      return;
+    }
+
+    const id = node.dataset.id;
+    const found = findElementById(id);
+    if (!found) return;
+
+    if (found.pageIndex !== state.custom.currentPage) {
+      state.custom.currentPage = found.pageIndex;
+      renderCustomPageTabs();
+      renderCustomElList();
+    }
+
+    e.preventDefault();
+
+    if (state.custom.selectedId !== id) {
+      state.custom.selectedId = id;
+      updateCustomSelection();
+      renderCustomElList();
+      renderCustomProps();
+    }
+
+    const canvasEl = node.closest('.ce-canvas');
+    if (!canvasEl) return;
+
+    const rect = canvasEl.getBoundingClientRect();
+    const u = PX_PER_MM * clampNum(state.normal.zoom, 0.5, 3, 1.5);
+    const cs = getCustomContentSize();
+
+    const mode = rotH ? 'rot' : (handle ? 'resize' : 'move');
+    const handlePos = handle ? handle.dataset.h : null;
+
+    dragState = {
+      id, mode, handlePos, rect, u,
+      canvasW: cs.w, canvasH: cs.h,
+      startMM: { x: (e.clientX - rect.left) / u, y: (e.clientY - rect.top) / u },
+      orig: JSON.parse(JSON.stringify(found.el)),
+      elData: found.el,
+      node
+    };
+
+    if (mode === 'rot') {
+      const c = { x: dragState.orig.x + dragState.orig.w / 2, y: dragState.orig.y + dragState.orig.h / 2 };
+      dragState.center = c;
+      dragState.startAngle = Math.atan2(dragState.startMM.y - c.y, dragState.startMM.x - c.x) * 180 / Math.PI;
+    }
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
+  }
+
+  function onPointerMove(e) {
+    if (!dragState) return;
+    e.preventDefault();
+    const d = dragState;
+    const ed = d.elData;
+    const orig = d.orig;
+    const cur = dragMM(e);
+    const f = d.u;
+
+    if (d.mode === 'move') {
+      let nx = orig.x + (cur.x - d.startMM.x);
+      let ny = orig.y + (cur.y - d.startMM.y);
+      const cw = d.canvasW, ch = d.canvasH, thr = SNAP_POS;
+      if (Math.abs(nx) < thr) nx = 0;
+      if (Math.abs((nx + orig.w) - cw) < thr) nx = cw - orig.w;
+      if (Math.abs((nx + orig.w / 2) - cw / 2) < thr) nx = cw / 2 - orig.w / 2;
+      if (Math.abs(ny) < thr) ny = 0;
+      if (Math.abs((ny + orig.h) - ch) < thr) ny = ch - orig.h;
+      if (Math.abs((ny + orig.h / 2) - ch / 2) < thr) ny = ch / 2 - orig.h / 2;
+      ed.x = nx;
+      ed.y = ny;
+    } else if (d.mode === 'rot') {
+      const c = d.center;
+      const a = Math.atan2(cur.y - c.y, cur.x - c.x) * 180 / Math.PI;
+      ed.rot = snapAngle(orig.rot + (a - d.startAngle));
+    } else if (d.mode === 'resize') {
+      const h = d.handlePos;
+      const rad = orig.rot * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      const toWorld = p => ({ x: p.x * cos - p.y * sin, y: p.x * sin + p.y * cos });
+      const toLocal = p => ({ x: p.x * cos + p.y * sin, y: -p.x * sin + p.y * cos });
+
+      const isCorner = (h === 'nw' || h === 'ne' || h === 'se' || h === 'sw');
+      const anchorLocalMap = {
+        nw: { x: orig.w, y: orig.h }, ne: { x: 0, y: orig.h },
+        se: { x: 0, y: 0 }, sw: { x: orig.w, y: 0 },
+        n: { x: orig.w / 2, y: orig.h }, s: { x: orig.w / 2, y: 0 },
+        e: { x: 0, y: orig.h / 2 }, w: { x: orig.w, y: orig.h / 2 }
+      };
+      const aLocal = anchorLocalMap[h];
+      const c0 = { x: orig.x + orig.w / 2, y: orig.y + orig.h / 2 };
+      const rel = { x: aLocal.x - orig.w / 2, y: aLocal.y - orig.h / 2 };
+      const relW = toWorld(rel);
+      const anchorW = { x: c0.x + relW.x, y: c0.y + relW.y };
+      const v = { x: cur.x - anchorW.x, y: cur.y - anchorW.y };
+      const vLocal = toLocal(v);
+
+      let nw = orig.w, nh = orig.h, halfW;
+      if (isCorner) {
+        const sx = (h === 'nw' || h === 'sw') ? -1 : 1;
+        const sy = (h === 'nw' || h === 'ne') ? -1 : 1;
+        nw = Math.max(MIN_SIZE, vLocal.x * sx);
+        nh = Math.max(MIN_SIZE, vLocal.y * sy);
+        if (orig.type === 'qrcode') {
+          const s = Math.max(nw, nh);
+          nw = s; nh = s;
+        }
+        halfW = toWorld({ x: sx * nw / 2, y: sy * nh / 2 });
+      } else if (h === 'e' || h === 'w') {
+        const sx = (h === 'w') ? -1 : 1;
+        nw = Math.max(MIN_SIZE, vLocal.x * sx);
+        nh = orig.h;
+        halfW = toWorld({ x: sx * nw / 2, y: 0 });
+      } else {
+        const sy = (h === 'n') ? -1 : 1;
+        nh = Math.max(MIN_SIZE, vLocal.y * sy);
+        nw = orig.w;
+        halfW = toWorld({ x: 0, y: sy * nh / 2 });
+      }
+      const ncx = anchorW.x + halfW.x;
+      const ncy = anchorW.y + halfW.y;
+      ed.w = nw;
+      ed.h = nh;
+      ed.x = ncx - nw / 2;
+      ed.y = ncy - nh / 2;
+    }
+
+    d.node.style.left = (ed.x * f).toFixed(2) + 'px';
+    d.node.style.top = (ed.y * f).toFixed(2) + 'px';
+    d.node.style.width = (ed.w * f).toFixed(2) + 'px';
+    d.node.style.height = (ed.h * f).toFixed(2) + 'px';
+    d.node.style.transform = 'rotate(' + ed.rot + 'deg)';
+  }
+
+  function onPointerUp() {
+    if (!dragState) return;
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerUp);
+    dragState = null;
+    renderCustomProps();
+    renderCustomElList();
+    scheduleSave();
+  }
+
+  /* ================= 历史记录预览 ================= */
+  function renderHistoryList() {
+    const list = loadHistory();
+    historyList.innerHTML = '';
+
+    if (!list.length) {
+      const h = el('div', 'history-empty');
+      h.textContent = '暂无历史记录。每次点击“一键打印”后会自动保存。';
+      historyList.appendChild(h);
+      return;
+    }
+
+    list.forEach(function (entry) {
+      const item = document.createElement('div');
+      item.className = 'history-item' + (entry.id === state.history.selectedId ? ' active' : '');
+      item.dataset.id = entry.id;
+
+      const img = document.createElement('img');
+      img.className = 'history-thumb';
+      img.src = entry.thumb;
+      img.alt = entry.title;
+      img.draggable = false;
+
+      const info = el('div', 'history-info');
+      const title = el('div', 'history-title');
+      title.textContent = entry.title;
+      const time = el('div', 'history-time');
+      time.textContent = formatTime(entry.timestamp);
+      const summary = el('div', 'history-summary');
+      summary.textContent = entry.summary || '';
+
+      const ops = el('div', 'history-ops');
+      const reprint = document.createElement('button');
+      reprint.type = 'button';
+      reprint.textContent = '重新打印';
+      reprint.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        reprintHistory(entry.id);
+      });
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'danger';
+      del.textContent = '删除';
+      del.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        deleteHistory(entry.id);
+      });
+      ops.appendChild(reprint);
+      ops.appendChild(del);
+
+      info.appendChild(title);
+      info.appendChild(time);
+      info.appendChild(summary);
+      info.appendChild(ops);
+
+      item.appendChild(img);
+      item.appendChild(info);
+
+      item.addEventListener('click', function () {
+        selectHistory(entry.id);
+      });
+
+      historyList.appendChild(item);
+    });
+  }
+
+  function selectHistory(id) {
+    if (state.history.selectedId === id) return;
+    state.history.selectedId = id;
+    renderHistoryList();
+    renderHistoryPreview();
+  }
+
+  function deleteHistory(id) {
+    if (!confirm('确定删除这条历史记录吗？')) return;
+    let list = loadHistory();
+    list = list.filter(function (e) { return e.id !== id; });
+    saveHistoryList(list);
+    if (state.history.selectedId === id) {
+      state.history.selectedId = list.length ? list[0].id : null;
+    }
+    renderHistoryList();
+    renderHistoryPreview();
+  }
+
+  function clearAllHistory() {
+    if (!confirm('确定清空全部历史记录吗？此操作不可撤销。')) return;
+    try { localStorage.removeItem(STORAGE_KEY_HISTORY); } catch (e) {}
+    state.history.selectedId = null;
+    renderHistoryList();
+    renderHistoryPreview();
+    showToast('已清空历史记录');
+  }
+
+  function renderHistoryPreview() {
+    const id = state.history.selectedId;
+    const entry = id ? getHistoryById(id) : null;
+
+    if (!entry) {
+      previewPages.innerHTML = '<div class="empty-tip">从左侧选择一条历史记录查看，或点击“重新打印”</div>';
+      previewTitle.innerHTML = '历史记录 · 纸张 <b>76 × 130 mm</b>';
+      return;
+    }
+
+    const snap = entry.snapshot;
+    const zoom = clampNum(state.normal.zoom, 0.5, 3, 1.5);
+    const u = PX_PER_MM * zoom;
+
+    previewTitle.innerHTML = '历史预览 · ' + entry.title + ' · ' + formatTime(entry.timestamp);
+
+    previewPages.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    if (snap.mode === 'normal') {
+      const cfg = snap.cfg;
+      const layout = computeNormalLayout(cfg, cfg.perPage);
+      const allPages = chunkArray(snap.lines, cfg.perPage);
+      const barcodeWMM = layout.contentW * cfg.widthPct / 100;
+      allPages.forEach(function (chunk, pi) {
+        const wrap = el('div', 'paper-wrap');
+        const cap = el('div', 'paper-cap');
+        cap.textContent = '第 ' + (pi + 1) + ' / ' + allPages.length + ' 张 · 76 × 130 mm';
+        wrap.appendChild(cap);
+        wrap.appendChild(buildNormalPaper(cfg, layout, chunk, u, barcodeWMM));
+        frag.appendChild(wrap);
+      });
+    } else if (snap.mode === 'express') {
+      const cfg = snap.cfg;
+      const layout = computeExpressLayout(cfg);
+      snap.pages.forEach(function (page, pi) {
+        const wrap = el('div', 'paper-wrap');
+        const cap = el('div', 'paper-cap');
+        cap.textContent = '第 ' + (pi + 1) + ' / ' + snap.pages.length + ' 张 · 76 × 130 mm';
+        wrap.appendChild(cap);
+        wrap.appendChild(buildExpressPreviewPaper(page, cfg, layout, u));
+        frag.appendChild(wrap);
+      });
+    } else if (snap.mode === 'custom') {
+      const cs = snap.contentSize;
+      snap.pages.forEach(function (page, pi) {
+        const wrap = el('div', 'paper-wrap');
+        const cap = el('div', 'paper-cap');
+        cap.textContent = '第 ' + (pi + 1) + ' / ' + snap.pages.length + ' 张 · 76 × 130 mm';
+        wrap.appendChild(cap);
+        wrap.appendChild(buildCustomPreviewPaper(page, cs, u, null));
+        frag.appendChild(wrap);
+      });
+    }
 
     previewPages.appendChild(frag);
   }
 
-  /* ================= 预览入口 ================= */
-  function renderPreview() {
-    if (state.mode === 'express') renderExpressPreview();
-    else renderNormalPreview();
-  }
+  function reprintHistory(id) {
+    const entry = getHistoryById(id);
+    if (!entry) { alert('历史记录不存在'); return; }
+    const snap = entry.snapshot;
+    let ok = false;
 
-  let renderTimer = null;
-  function scheduleRender() {
-    clearTimeout(renderTimer);
-    renderTimer = setTimeout(renderPreview, 110);
-  }
-
-  /* ================= 普通模式打印 ================= */
-  function buildNormalPrintDOM() {
-    const cfg = getNormalConfig();
-    const lines = getNormalLines().slice(0, MAX_LINES);
-
-    printRoot.innerHTML = '';
-    if (!lines.length) {
-      alert('请先在左侧输入至少一行条码内容');
-      return false;
+    if (snap.mode === 'normal') {
+      ok = buildNormalPrintDOM(snap.cfg, snap.lines);
+    } else if (snap.mode === 'express') {
+      ok = buildExpressPrintDOM(snap.cfg, snap.pages);
+    } else if (snap.mode === 'custom') {
+      ok = buildCustomPrintDOM(snap.contentSize, snap.pages);
     }
 
+    if (!ok) { alert('历史数据无效，无法重新打印'); return; }
+    requestAnimationFrame(function () {
+      setTimeout(function () { window.print(); }, 30);
+    });
+  }
+
+  /* ================= 打印 DOM 构建（接受参数） ================= */
+  function buildNormalPrintDOM(cfg, lines) {
+    printRoot.innerHTML = '';
+    if (!lines.length) { alert('请先在左侧输入至少一行条码内容'); return false; }
     const layout = computeNormalLayout(cfg, cfg.perPage);
     const pages = chunkArray(lines, cfg.perPage);
     const barcodeWMM = layout.contentW * cfg.widthPct / 100;
@@ -1907,23 +3122,14 @@
       page.appendChild(body);
       frag.appendChild(page);
     });
-
     printRoot.appendChild(frag);
     return true;
   }
 
-  /* ================= 快递单打印 ================= */
-  function buildExpressPrintDOM() {
-    const cfg = getExpressConfig();
-    const layout = computeExpressLayout(cfg);
-    const pages = state.express.pages;
-
+  function buildExpressPrintDOM(cfg, pages) {
     printRoot.innerHTML = '';
-    if (!pages.length) {
-      alert('请至少添加一页快递单');
-      return false;
-    }
-
+    if (!pages.length) { alert('请至少添加一页快递单'); return false; }
+    const layout = computeExpressLayout(cfg);
     const frag = document.createDocumentFragment();
 
     pages.forEach(function (page) {
@@ -1934,7 +3140,6 @@
         cfg.padBottom + 'mm ' + cfg.padLeft + 'mm';
 
       const body = el('div', 'express-body');
-
       const top = el('div', 'express-top-barcode');
       top.style.height = layout.topH.toFixed(3) + 'mm';
       const bc = (page.barcode || '').trim();
@@ -1973,13 +3178,7 @@
           if (!vText) throw new Error('内容为空');
           const vFontMM = cfg.showVText ? pickVerticalFontMM(vText, layout.vBarH, layout.vTextW) : 0;
           vb.appendChild(buildVerticalSVG(
-            vText,
-            cfg.vBarW,
-            layout.vBarH,
-            layout.vTextW,
-            vFontMM,
-            cfg.showVText,
-            'mm'
+            vText, cfg.vBarW, layout.vBarH, layout.vTextW, vFontMM, cfg.showVText, 'mm'
           ));
         } catch (err) {
           const e = el('div', 'print-err');
@@ -1999,12 +3198,58 @@
     return true;
   }
 
+  function buildCustomPrintDOM(contentSize, pages) {
+    printRoot.innerHTML = '';
+    if (!pages.length) { alert('请先添加至少一页'); return false; }
+    const cs = contentSize;
+    const frag = document.createDocumentFragment();
+
+    pages.forEach(function (page) {
+      const pageEl = el('div', 'label-page');
+      const body = el('div', 'label-body');
+      body.style.padding = cs.padT + 'mm ' + cs.padR + 'mm ' + cs.padB + 'mm ' + cs.padL + 'mm';
+
+      const canvas = el('div', 'print-canvas');
+      canvas.style.width = cs.w.toFixed(3) + 'mm';
+      canvas.style.height = cs.h.toFixed(3) + 'mm';
+      canvas.style.overflow = 'hidden';
+
+      page.elements.forEach(function (e) {
+        canvas.appendChild(buildCustomElNode(e, 1, 'mm', false));
+      });
+
+      body.appendChild(canvas);
+      pageEl.appendChild(body);
+      frag.appendChild(pageEl);
+    });
+
+    printRoot.appendChild(frag);
+    return true;
+  }
+
+  /* ================= 打印入口（含历史保存） ================= */
   function printAll() {
     syncNormalFromDOM();
-    let ok = false;
-    if (state.mode === 'express') ok = buildExpressPrintDOM();
-    else ok = buildNormalPrintDOM();
-    if (!ok) return;
+    const mode = state.mode;
+    if (mode === 'history') { showToast('历史记录模式下请选择具体记录重新打印'); return; }
+
+    if (mode === 'express') {
+      const cfg = getExpressConfig();
+      const pages = clone(state.express.pages);
+      if (!buildExpressPrintDOM(cfg, pages)) return;
+      addHistoryEntry({ mode: 'express', cfg: cfg, pages: pages });
+    } else if (mode === 'custom') {
+      const cs = getCustomContentSize();
+      const pages = clone(state.custom.pages);
+      if (!buildCustomPrintDOM(cs, pages)) return;
+      addHistoryEntry({ mode: 'custom', contentSize: cs, pages: pages });
+    } else {
+      const cfg = getNormalConfig();
+      const lines = getNormalLines().slice(0, MAX_LINES);
+      if (!buildNormalPrintDOM(cfg, lines)) return;
+      addHistoryEntry({ mode: 'normal', cfg: cfg, lines: lines });
+    }
+
     requestAnimationFrame(function () {
       setTimeout(function () { window.print(); }, 30);
     });
@@ -2012,47 +3257,78 @@
 
   /* ================= 模式切换 ================= */
   function applyModeUI() {
-    const isExpress = state.mode === 'express';
-    normalPanel.hidden = isExpress;
-    expressPanel.hidden = !isExpress;
-    $('modeNormal').classList.toggle('active', !isExpress);
-    $('modeExpress').classList.toggle('active', isExpress);
-    viewSwitch.hidden = isExpress;
+    const m = state.mode;
+    normalPanel.hidden = m !== 'normal';
+    expressPanel.hidden = m !== 'express';
+    customPanel.hidden = m !== 'custom';
+    historyPanel.hidden = m !== 'history';
+    $('modeNormal').classList.toggle('active', m === 'normal');
+    $('modeExpress').classList.toggle('active', m === 'express');
+    $('modeCustom').classList.toggle('active', m === 'custom');
+    $('modeHistory').classList.toggle('active', m === 'history');
+    viewSwitch.hidden = m !== 'normal';
   }
 
   function switchMode(mode) {
-    if (mode !== 'express' && mode !== 'normal') return;
+    if (mode !== 'express' && mode !== 'normal' && mode !== 'custom' && mode !== 'history') return;
     if (state.mode === mode) return;
     syncNormalFromDOM();
     state.mode = mode;
     applyModeUI();
-    applyExpressToDOM();
-    syncPaddingInputs();
-    renderPreview();
+
+    if (mode === 'history') {
+      // 默认选中最新一条
+      const list = loadHistory();
+      if (list.length && !getHistoryById(state.history.selectedId)) {
+        state.history.selectedId = list[0].id;
+      }
+      renderHistoryList();
+      renderHistoryPreview();
+    } else {
+      applyExpressToDOM();
+      syncPaddingInputs();
+      renderCustomPageTabs();
+      renderCustomElList();
+      renderCustomProps();
+      renderPreview();
+    }
     doSave();
   }
 
-  /* ================= 事件：普通面板 ================= */
+  /* ================= 预览入口 ================= */
+  function renderPreview() {
+    if (state.mode === 'express') renderExpressPreview();
+    else if (state.mode === 'custom') renderCustomPreview();
+    else if (state.mode === 'history') renderHistoryPreview();
+    else renderNormalPreview();
+  }
+
+  let renderTimer = null;
+  function scheduleRender() {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(function () {
+      renderPreview();
+      if (state.mode === 'custom') renderCustomElList();
+    }, 110);
+  }
+
+  /* ================= 普通面板事件 ================= */
   normalPanel.addEventListener('input', function (e) {
-    if (e.target === heightModeEl) {
-      fixedHEl.disabled = (heightModeEl.value !== 'fixed');
-    }
+    if (e.target === heightModeEl) fixedHEl.disabled = (heightModeEl.value !== 'fixed');
     syncNormalFromDOM();
     syncPaddingInputs();
     scheduleRender();
     scheduleSave();
   });
   normalPanel.addEventListener('change', function (e) {
-    if (e.target === heightModeEl) {
-      fixedHEl.disabled = (heightModeEl.value !== 'fixed');
-    }
+    if (e.target === heightModeEl) fixedHEl.disabled = (heightModeEl.value !== 'fixed');
     syncNormalFromDOM();
     syncPaddingInputs();
     scheduleRender();
     scheduleSave();
   });
 
-  /* ================= 事件：快递单子标签 ================= */
+  /* ================= 快递单子标签 ================= */
   expressSubTabs.addEventListener('click', function (e) {
     const btn = e.target.closest('.sub-tab');
     if (!btn) return;
@@ -2064,11 +3340,9 @@
     doSave();
   });
 
-  /* ================= 事件：快递单面板 ================= */
+  /* ================= 快递单面板事件 ================= */
   expressPanel.addEventListener('input', function (e) {
     const t = e.target;
-
-    // 页编辑区 / 高级选项中的内容字段
     if (t.dataset && t.dataset.field) {
       const page = state.express.pages[state.express.currentPage];
       if (!page) return;
@@ -2077,45 +3351,32 @@
       scheduleSave();
       return;
     }
-
-    // 设置项
     if (t.id === 'exBarH') state.express.barH = t.value;
     else if (t.id === 'exWidthPct') state.express.widthPct = t.value;
     else if (t.id === 'exVBarW') state.express.vBarW = t.value;
     else if (t.id === 'exVBarTop') state.express.vBarTop = t.value;
     else if (t.id === 'exVBarH') state.express.vBarH = t.value;
     else if (t.id === 'exShowText') state.express.showText = t.checked;
-    else if (t.id === 'exShowVBarcode') {
-      state.express.showVBarcode = t.checked;
-      syncVTextAvailability();
-    }
+    else if (t.id === 'exShowVBarcode') { state.express.showVBarcode = t.checked; syncVTextAvailability(); }
     else if (t.id === 'exShowVText') state.express.showVText = t.checked;
     else if (t.id === 'exPadTop') state.normal.padTop = t.value;
     else if (t.id === 'exPadBottom') state.normal.padBottom = t.value;
     else if (t.id === 'exPadLeft') state.normal.padLeft = t.value;
     else if (t.id === 'exPadRight') state.normal.padRight = t.value;
     else if (t.id === 'exGap') state.normal.gap = t.value;
-
-    if ((t.id && t.id.indexOf('exPad') === 0) || t.id === 'exGap') {
-      syncPaddingInputs();
-    }
-
+    if ((t.id && t.id.indexOf('exPad') === 0) || t.id === 'exGap') syncPaddingInputs();
     scheduleRender();
     scheduleSave();
   });
   expressPanel.addEventListener('change', function (e) {
     const t = e.target;
     if (t.id === 'exShowText') state.express.showText = t.checked;
-    else if (t.id === 'exShowVBarcode') {
-      state.express.showVBarcode = t.checked;
-      syncVTextAvailability();
-    }
+    else if (t.id === 'exShowVBarcode') { state.express.showVBarcode = t.checked; syncVTextAvailability(); }
     else if (t.id === 'exShowVText') state.express.showVText = t.checked;
     scheduleRender();
     scheduleSave();
   });
 
-  /* --- 页标签栏：切换 / 添加 --- */
   pageTabs.addEventListener('click', function (e) {
     const addBtn = e.target.closest('button[data-action="add"]');
     if (addBtn) {
@@ -2139,7 +3400,6 @@
     doSave();
   });
 
-  /* --- 编辑区删除按钮 --- */
   pageEditor.addEventListener('click', function (e) {
     const btn = e.target.closest('button[data-action="del"]');
     if (!btn) return;
@@ -2152,6 +3412,172 @@
     renderExpressPageEditor();
     renderPreview();
     scheduleSave();
+  });
+
+  /* ================= 自定义面板事件 ================= */
+  customPageTabs.addEventListener('click', function (e) {
+    const addBtn = e.target.closest('button[data-action="add"]');
+    if (addBtn) {
+      state.custom.pages.push({ elements: [] });
+      state.custom.currentPage = state.custom.pages.length - 1;
+      state.custom.selectedId = null;
+      renderCustomPageTabs();
+      renderCustomElList();
+      renderCustomProps();
+      renderPreview();
+      scheduleSave();
+      return;
+    }
+    const tab = e.target.closest('.page-tab');
+    if (!tab) return;
+    const idx = parseInt(tab.dataset.index, 10);
+    if (isNaN(idx) || idx === state.custom.currentPage) return;
+    state.custom.currentPage = idx;
+    state.custom.selectedId = null;
+    renderCustomPageTabs();
+    renderCustomElList();
+    renderCustomProps();
+    renderPreview();
+    doSave();
+  });
+
+  customDelPage.addEventListener('click', function () {
+    if (state.custom.pages.length <= 1) return;
+    if (!confirm('确定删除当前页吗？')) return;
+    const cur = state.custom.currentPage;
+    state.custom.pages.splice(cur, 1);
+    if (state.custom.currentPage >= state.custom.pages.length) {
+      state.custom.currentPage = state.custom.pages.length - 1;
+    }
+    state.custom.selectedId = null;
+    renderCustomPageTabs();
+    renderCustomElList();
+    renderCustomProps();
+    renderPreview();
+    scheduleSave();
+  });
+
+  customElList.addEventListener('click', function (e) {
+    const item = e.target.closest('.ce-el-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (!id) return;
+    state.custom.selectedId = id;
+    renderCustomPreview();
+    renderCustomElList();
+    renderCustomProps();
+    scheduleSave();
+  });
+
+  customPanel.addEventListener('click', function (e) {
+    const addBtn = e.target.closest('.ce-add-btn');
+    if (!addBtn) return;
+    const type = addBtn.dataset.add;
+    if (type === 'image') { customImgInput.click(); return; }
+    addCustomElement(type);
+  });
+
+  customImgInput.addEventListener('change', function (e) {
+    const file = e.target.files && e.target.files[0];
+    customImgInput.value = '';
+    if (!file) return;
+    showToast('提示：受热敏纸和打印机限制，无法打印彩色图片。建议使用黑白或高对比度图片，彩色部分会以灰度输出。', 5200);
+    readImageFile(file).then(function (dataUrl) {
+      addCustomElement('image', dataUrl);
+    }).catch(function (err) {
+      alert('图片添加失败：' + (err && err.message ? err.message : '未知错误'));
+    });
+  });
+
+  customProps.addEventListener('input', function (e) {
+    const t = e.target;
+    if (!t.dataset || !t.dataset.prop) return;
+    const id = state.custom.selectedId;
+    if (!id) return;
+    const found = findElementById(id);
+    if (!found) return;
+    const prop = t.dataset.prop;
+    const u = PX_PER_MM * clampNum(state.normal.zoom, 0.5, 3, 1.5);
+    const node = document.querySelector('.ce[data-id="' + id + '"]');
+
+    if (prop === 'value') {
+      found.el.value = t.value;
+      if (node) {
+        const old = node.querySelector('.ce-content');
+        if (old) node.replaceChild(buildCustomElContent(found.el, u, 'px'), old);
+      }
+    } else if (prop === 'fontSize') {
+      found.el.fontSize = clampNum(t.value, 0.8, 60, 3.5);
+      const contentEl = node ? node.querySelector('.ce-content > div') : null;
+      if (contentEl) contentEl.style.fontSize = (found.el.fontSize * u).toFixed(2) + 'px';
+    } else if (prop === 'barcodeFontSize') {
+      found.el.fontSize = clampNum(t.value, 1, 20, 3.5);
+      if (node) {
+        const old = node.querySelector('.ce-content');
+        if (old) node.replaceChild(buildCustomElContent(found.el, u, 'px'), old);
+      }
+    } else if (prop === 'showText') {
+      found.el.showText = t.checked;
+      if (node) {
+        const old = node.querySelector('.ce-content');
+        if (old) node.replaceChild(buildCustomElContent(found.el, u, 'px'), old);
+      }
+      renderCustomProps();
+    }
+    scheduleSave();
+  });
+  customProps.addEventListener('change', function (e) {
+    const t = e.target;
+    if (t.dataset && t.dataset.prop === 'showText') {
+      const id = state.custom.selectedId;
+      if (!id) return;
+      const found = findElementById(id);
+      if (!found) return;
+      found.el.showText = t.checked;
+      renderCustomPreview();
+      renderCustomProps();
+      renderCustomElList();
+      scheduleSave();
+    }
+  });
+
+  [cuPadTopEl, cuPadBottomEl, cuPadLeftEl, cuPadRightEl].forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      state.normal.padTop = cuPadTopEl.value;
+      state.normal.padBottom = cuPadBottomEl.value;
+      state.normal.padLeft = cuPadLeftEl.value;
+      state.normal.padRight = cuPadRightEl.value;
+      syncPaddingInputs();
+      scheduleRender();
+      scheduleSave();
+    });
+    inp.addEventListener('change', function () {
+      state.normal.padTop = cuPadTopEl.value;
+      state.normal.padBottom = cuPadBottomEl.value;
+      state.normal.padLeft = cuPadLeftEl.value;
+      state.normal.padRight = cuPadRightEl.value;
+      syncPaddingInputs();
+      scheduleRender();
+      scheduleSave();
+    });
+  });
+
+  previewPages.addEventListener('pointerdown', onPreviewPointerDown);
+
+  document.addEventListener('keydown', function (e) {
+    if (state.mode !== 'custom') return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && state.custom.selectedId) {
+      e.preventDefault();
+      deleteElement(state.custom.selectedId);
+    } else if (e.key === 'Escape' && state.custom.selectedId) {
+      state.custom.selectedId = null;
+      updateCustomSelection();
+      renderCustomElList();
+      renderCustomProps();
+      scheduleSave();
+    }
   });
 
   /* ================= 视图切换 ================= */
@@ -2171,13 +3597,8 @@
     if (state.mode !== 'normal' || state.normal.previewMode !== 'single') return;
     const t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      changeSingleIndex(-1);
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      changeSingleIndex(1);
-    }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); changeSingleIndex(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); changeSingleIndex(1); }
   });
 
   /* ================= 缩放 ================= */
@@ -2191,7 +3612,9 @@
   /* ================= 按钮 ================= */
   $('printAll').addEventListener('click', printAll);
   $('exPrintAll').addEventListener('click', printAll);
+  $('customPrintAll').addEventListener('click', printAll);
   downloadZipBtn.addEventListener('click', downloadAllBarcodes);
+  clearHistoryBtn.addEventListener('click', clearAllHistory);
 
   $('reset').addEventListener('click', function () {
     state.normal = clone(DEFAULT_NORMAL);
@@ -2210,8 +3633,20 @@
     scheduleSave();
   });
 
+  $('customReset').addEventListener('click', function () {
+    if (!confirm('确定要清空自定义模式的所有页面和元素吗？此操作不可撤销。')) return;
+    state.custom = clone(DEFAULT_CUSTOM);
+    renderCustomPageTabs();
+    renderCustomElList();
+    renderCustomProps();
+    renderPreview();
+    scheduleSave();
+  });
+
   $('modeNormal').addEventListener('click', function () { switchMode('normal'); });
   $('modeExpress').addEventListener('click', function () { switchMode('express'); });
+  $('modeCustom').addEventListener('click', function () { switchMode('custom'); });
+  $('modeHistory').addEventListener('click', function () { switchMode('history'); });
 
   inputEl.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -2239,6 +3674,7 @@
   if (!restored) {
     state.normal = clone(DEFAULT_NORMAL);
     state.express = clone(DEFAULT_EXPRESS);
+    state.custom = clone(DEFAULT_CUSTOM);
     state.mode = 'normal';
   }
 
@@ -2252,7 +3688,21 @@
   applyModeUI();
   renderExpressSubTabs();
   renderExpressPageEditor();
-  renderPreview();
+  renderCustomPageTabs();
+  renderCustomElList();
+  renderCustomProps();
+  renderHistoryList();
+
+  if (state.mode === 'history') {
+    const list = loadHistory();
+    if (list.length && !getHistoryById(state.history.selectedId)) {
+      state.history.selectedId = list[0].id;
+    }
+    renderHistoryList();
+    renderHistoryPreview();
+  } else {
+    renderPreview();
+  }
 
   if (restored) {
     saveDot.classList.remove('pending');
@@ -2262,6 +3712,12 @@
     }, 2400);
   } else {
     scheduleSave();
+  }
+
+  if (typeof window.qrcode !== 'function') {
+    setTimeout(function () {
+      showToast('提示：二维码组件未能加载,您可能处于离线状态，二维码元素将无法生成。条形码、文本、图片不受影响。', 6000);
+    }, 1200);
   }
 })();
 </script>
